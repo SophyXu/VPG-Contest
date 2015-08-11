@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+  <head>
+    <style>
+      rect.bordered {
+        stroke: #E6E6E6;
+        stroke-width:2px;   
+      }
+
+      text.mono {
+        font-size: 9pt;
+        font-family: Consolas, courier;
+        fill: #aaa;
+      }
+
+      text.axis-workweek {
+        fill: #000;
+      }
+
+      text.axis-worktime {
+        fill: #000;
+      }
+    </style>
+    <script src="http://d3js.org/d3.v3.js"></script>
+  </head>
+  <body>
+    <div id="chart1"></div>
+    <div id="chart2"></div>
+    <div id="chart3"></div>
+
+    <script type="text/javascript">
+      var margin = { top: 50, right: 0, bottom: 100, left: 30 },
+          width = 960 - margin.left - margin.right,
+          height = 430 - margin.top - margin.bottom,
+          gridSize = Math.floor(width / 36),
+          legendElementWidth = gridSize*2,
+          buckets = 9,
+          colors = ["#ffffd9","#edf8b1","#c7e9b4","#7fcdbb","#41b6c4","#1d91c0","#225ea8","#253494","#081d58"],
+          majors = ["Agr", "Arc", "Are", "Art", "Bus", "Com", "Com", "C&M", "Edu", "E&D", "Eng", "E&F", "H&A", "H&T", "Phi", "Rep", "Sci", "Soc"],
+          matchs = ["Agr", "Arc", "Are", "Art", "Bus", "Com", "Com", "C&M", "Edu", "E&D", "Eng", "E&F", "H&A", "H&T", "Phi", "Rep", "Sci", "Soc"];
+
+          var array = new Array();
+
+          for(var i = 0; i < 18; ++i){
+            array[i] = new Array();
+            for(var j = 0; j < 18; ++j)
+              array[i][j] = 0;
+          }
+
+          d3.csv("student_s.csv", function(d) {
+              var i = major2index(d.T1_Level2);
+              var j = major2index(d.HighestLevel2);
+              array[i][j] += d.count;
+              // console.log(i);
+              // console.log(j);
+              // console.log(d.count);
+              // console.log(d.T1_Level2);
+              // console.log(d.HighestLevel2);
+              return {
+
+              };
+            },
+            function(error, data) {
+              
+          });
+
+
+          function major2index(major) {
+            var num = 0;
+            if(major == "Agric. & Nat. Res. Cons") num = 0;
+            if(major == "Architecture") num = 1;
+            if(major == "Area") num = 2;
+            if(major == "Arts: Visual & Performing") num = 3;
+            if(major == "Business") num = 4;
+            if(major == "Commu") num = 5;
+            if(major == "Communications") num = 6;
+            if(major == "Comp. Sci. & Mathematics") num = 7;
+            if(major == "Education") num = 8;
+            if(major == "Eng. Tech. & Drafting") num = 9;
+            if(major == "Engineering") num = 10;
+            if(major == "English & Foreign Lang.") num = 11;
+            if(major == "Health Admin. & Assisting") num = 12;
+            if(major == "Health Sci. & Techno.") num = 13;
+            if(major == "Philosophy") num = 14;
+            if(major == "Repair") num = 15;
+            if(major == "Sciences: Biological & Physical") num = 16;
+            if(major == "Social Sciences & Law") num = 17;
+
+            return num;
+          }
+
+    </script>
+  </body>
+</html>
