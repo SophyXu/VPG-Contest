@@ -7,17 +7,14 @@
         stroke: #E6E6E6;
         stroke-width:2px;   
       }
-
       text.mono {
         font-size: 9pt;
         font-family: Consolas, courier;
         fill: #aaa;
       }
-
       text.axis-workweek {
         fill: #000;
       }
-
       text.axis-worktime {
         fill: #000;
       }
@@ -32,48 +29,281 @@
     <script type="text/javascript">
       var margin = { top: 50, right: 0, bottom: 100, left: 30 },
           width = 960 - margin.left - margin.right,
-          height = 430 - margin.top - margin.bottom,
+          height = 600 - margin.top - margin.bottom,
           gridSize = Math.floor(width / 36),
           legendElementWidth = gridSize*2,
           buckets = 9,
           colors = ["#ffffd9","#edf8b1","#c7e9b4","#7fcdbb","#41b6c4","#1d91c0","#225ea8","#253494","#081d58"],
           majors = ["Agr", "Arc", "Are", "Art", "Bus", "Com", "Com", "C&M", "Edu", "E&D", "Eng", "E&F", "H&A", "H&T", "Phi", "Rep", "Sci", "Soc"],
           matchs = ["Agr", "Arc", "Are", "Art", "Bus", "Com", "Com", "C&M", "Edu", "E&D", "Eng", "E&F", "H&A", "H&T", "Phi", "Rep", "Sci", "Soc"];
-
-          var array = new Array();
+          
+          var array_1 = array_2 = array_3 = new Array();
+          var sum_1 = sum_2 = sum_3 = new Array();
+          var max_1 = max_2 = max_3 = 0;
 
           for(var i = 0; i < 18; ++i){
-            array[i] = new Array();
-            for(var j = 0; j < 18; ++j)
-              array[i][j] = 0;
+            array_1[i] = new Array();
+            for(var j = 0; j < 18; ++j){
+              array_1[i][j] = 0;
+              array_2[i][j] = 0;
+              array_3[i][j] = 0;
+            }
           }
-
-          d3.csv("student_s.csv", function(d) {
+          
+          d3.csv("student.csv", function(d) {
               var i = major2index(d.T1_Level2);
               var j = major2index(d.HighestLevel2);
-              array[i][j] += d.count;
-              // console.log(i);
-              // console.log(j);
-              // console.log(d.count);
-              // console.log(d.T1_Level2);
-              // console.log(d.HighestLevel2);
+              array_1[i][j] += d.count/1;
               return {
-
               };
             },
             function(error, data) {
+                for(var i = 0; i < 18; ++i)
+                  for(var j = 0; j < 18; ++j) {
+                    if(array_1[i][j] > max_1)
+                      max_1 = array_1[i][j];
+                    sum_1[i*18+j] = array_1[i][j];
+                  }
+
+                var colorScale = d3.scale.quantile()
+                    .domain([0, buckets - 1, max_1])
+                    .range(colors);
+
+                var svg = d3.select("#chart1").append("svg")
+                    .attr("width", width + margin.left + margin.right)
+                    .attr("height", height + margin.top + margin.bottom)
+                    .append("g")
+                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+                var matchLabels = svg.selectAll(".matchLabel")
+                    .data(matchs)
+                    .enter().append("text")
+                      .text(function (d) { return d; })
+                      .attr("x", 0)
+                      .attr("y", function (d, i) { return i * gridSize; })
+                      .style("text-anchor", "end")
+                      .attr("transform", "translate(-6," + gridSize / 1.5 + ")")
+                      .attr("class", function (d, i) { return ((i >= 0 && i <= 17) ? "matchLabel mono axis axis-workweek" : "matchLabel mono axis"); });
+
+                var majorLabels = svg.selectAll(".majorLabel")
+                    .data(majors)
+                    .enter().append("text")
+                      .text(function(d) { return d; })
+                      .attr("x", function(d, i) { return i * gridSize; })
+                      .attr("y", 0)
+                      .style("text-anchor", "middle")
+                      .attr("transform", "translate(" + gridSize / 2 + ", -6)")
+                      .attr("class", function(d, i) { return ((i >= 0 && i <= 17) ? "timeLabel mono axis axis-worktime" : "timeLabel mono axis"); });
+
+                var heatMap = svg.selectAll(".hit")
+                    .data(sum_1)
+                    .enter().append("rect")
+                    .attr("x", function(d, i) { return Math.floor(i/18) * gridSize; })
+                    .attr("y", function(d, i) { return i % 18 * gridSize; })
+                    .attr("rx", 4)
+                    .attr("ry", 4)
+                    .attr("class", "hour bordered")
+                    .attr("width", gridSize)
+                    .attr("height", gridSize)
+                    .style("fill", colors[0]);
+
+                heatMap.transition().duration(1000)
+                    .style("fill", function(d) { return colorScale(d); });
+
+                heatMap.append("title").text(function(d) { return d; });
+
+                var legend = svg.selectAll(".legend")
+                    .data([0].concat(colorScale.quantiles()), function(d) { return d; })
+                    .enter().append("g")
+                    .attr("class", "legend");
+
+                legend.append("rect")
+                  .attr("x", function(d, i) { return legendElementWidth * i; })
+                  .attr("y", height + 10)
+                  .attr("width", legendElementWidth)
+                  .attr("height", gridSize / 2)
+                  .style("fill", function(d, i) { return colors[i]; });
+
+                legend.append("text")
+                  .attr("class", "mono")
+                  .text(function(d) { return "≥ " + Math.round(d); })
+                  .attr("x", function(d, i) { return legendElementWidth * i; })
+                  .attr("y", height + gridSize + 10);
               
           });
 
+          d3.csv("student.csv", function(d) {
+              var i = major2index(d.T1_Level2);
+              var j = major2index(d.HighestLevel2);
+              array_2[i][j] += d.count/1;
+              return {
+              };
+            },
+            function(error, data) {
+                for(var i = 0; i < 18; ++i)
+                  for(var j = 0; j < 18; ++j) {
+                    if(array_2[i][j] > max_2)
+                      max_2 = array_2[i][j];
+                    sum_2[i*18+j] = array_2[i][j];
+                  }
+
+                var colorScale = d3.scale.quantile()
+                    .domain([0, buckets - 1, max_2])
+                    .range(colors);
+
+                var svg = d3.select("#chart1").append("svg")
+                    .attr("width", width + margin.left + margin.right)
+                    .attr("height", height + margin.top + margin.bottom)
+                    .append("g")
+                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+                var matchLabels = svg.selectAll(".matchLabel")
+                    .data(matchs)
+                    .enter().append("text")
+                      .text(function (d) { return d; })
+                      .attr("x", 0)
+                      .attr("y", function (d, i) { return i * gridSize; })
+                      .style("text-anchor", "end")
+                      .attr("transform", "translate(-6," + gridSize / 1.5 + ")")
+                      .attr("class", function (d, i) { return ((i >= 0 && i <= 17) ? "matchLabel mono axis axis-workweek" : "matchLabel mono axis"); });
+
+                var majorLabels = svg.selectAll(".majorLabel")
+                    .data(majors)
+                    .enter().append("text")
+                      .text(function(d) { return d; })
+                      .attr("x", function(d, i) { return i * gridSize; })
+                      .attr("y", 0)
+                      .style("text-anchor", "middle")
+                      .attr("transform", "translate(" + gridSize / 2 + ", -6)")
+                      .attr("class", function(d, i) { return ((i >= 0 && i <= 17) ? "timeLabel mono axis axis-worktime" : "timeLabel mono axis"); });
+
+                var heatMap = svg.selectAll(".hit")
+                    .data(sum_2)
+                    .enter().append("rect")
+                    .attr("x", function(d, i) { return Math.floor(i/18) * gridSize; })
+                    .attr("y", function(d, i) { return i % 18 * gridSize; })
+                    .attr("rx", 4)
+                    .attr("ry", 4)
+                    .attr("class", "hour bordered")
+                    .attr("width", gridSize)
+                    .attr("height", gridSize)
+                    .style("fill", colors[0]);
+
+                heatMap.transition().duration(1000)
+                    .style("fill", function(d) { return colorScale(d); });
+
+                heatMap.append("title").text(function(d) { return d; });
+
+                var legend = svg.selectAll(".legend")
+                    .data([0].concat(colorScale.quantiles()), function(d) { return d; })
+                    .enter().append("g")
+                    .attr("class", "legend");
+
+                legend.append("rect")
+                  .attr("x", function(d, i) { return legendElementWidth * i; })
+                  .attr("y", height + 10)
+                  .attr("width", legendElementWidth)
+                  .attr("height", gridSize / 2)
+                  .style("fill", function(d, i) { return colors[i]; });
+
+                legend.append("text")
+                  .attr("class", "mono")
+                  .text(function(d) { return "≥ " + Math.round(d); })
+                  .attr("x", function(d, i) { return legendElementWidth * i; })
+                  .attr("y", height + gridSize + 10);
+              
+          });
+
+          d3.csv("student.csv", function(d) {
+              var i = major2index(d.T1_Level2);
+              var j = major2index(d.HighestLevel2);
+              array_3[i][j] += d.count/1;
+              return {
+              };
+            },
+            function(error, data) {
+                for(var i = 0; i < 18; ++i)
+                  for(var j = 0; j < 18; ++j) {
+                    if(array_3[i][j] > max_3)
+                      max_3 = array_3[i][j];
+                    sum_3[i*18+j] = array_3[i][j];
+                  }
+
+                var colorScale = d3.scale.quantile()
+                    .domain([0, buckets - 1, max_3])
+                    .range(colors);
+
+                var svg = d3.select("#chart1").append("svg")
+                    .attr("width", width + margin.left + margin.right)
+                    .attr("height", height + margin.top + margin.bottom)
+                    .append("g")
+                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+                var matchLabels = svg.selectAll(".matchLabel")
+                    .data(matchs)
+                    .enter().append("text")
+                      .text(function (d) { return d; })
+                      .attr("x", 0)
+                      .attr("y", function (d, i) { return i * gridSize; })
+                      .style("text-anchor", "end")
+                      .attr("transform", "translate(-6," + gridSize / 1.5 + ")")
+                      .attr("class", function (d, i) { return ((i >= 0 && i <= 17) ? "matchLabel mono axis axis-workweek" : "matchLabel mono axis"); });
+
+                var majorLabels = svg.selectAll(".majorLabel")
+                    .data(majors)
+                    .enter().append("text")
+                      .text(function(d) { return d; })
+                      .attr("x", function(d, i) { return i * gridSize; })
+                      .attr("y", 0)
+                      .style("text-anchor", "middle")
+                      .attr("transform", "translate(" + gridSize / 2 + ", -6)")
+                      .attr("class", function(d, i) { return ((i >= 0 && i <= 17) ? "timeLabel mono axis axis-worktime" : "timeLabel mono axis"); });
+
+                var heatMap = svg.selectAll(".hit")
+                    .data(sum_3)
+                    .enter().append("rect")
+                    .attr("x", function(d, i) { return Math.floor(i/18) * gridSize; })
+                    .attr("y", function(d, i) { return i % 18 * gridSize; })
+                    .attr("rx", 4)
+                    .attr("ry", 4)
+                    .attr("class", "hour bordered")
+                    .attr("width", gridSize)
+                    .attr("height", gridSize)
+                    .style("fill", colors[0]);
+
+                heatMap.transition().duration(1000)
+                    .style("fill", function(d) { return colorScale(d); });
+
+                heatMap.append("title").text(function(d) { return d; });
+
+                var legend = svg.selectAll(".legend")
+                    .data([0].concat(colorScale.quantiles()), function(d) { return d; })
+                    .enter().append("g")
+                    .attr("class", "legend");
+
+                legend.append("rect")
+                  .attr("x", function(d, i) { return legendElementWidth * i; })
+                  .attr("y", height + 10)
+                  .attr("width", legendElementWidth)
+                  .attr("height", gridSize / 2)
+                  .style("fill", function(d, i) { return colors[i]; });
+
+                legend.append("text")
+                  .attr("class", "mono")
+                  .text(function(d) { return "≥ " + Math.round(d); })
+                  .attr("x", function(d, i) { return legendElementWidth * i; })
+                  .attr("y", height + gridSize + 10);
+              
+          });
 
           function major2index(major) {
             var num = 0;
             if(major == "Agric. & Nat. Res. Cons") num = 0;
             if(major == "Architecture") num = 1;
-            if(major == "Area") num = 2;
+            if(major == "Area, Eth. & Multidiscip. Studies") num = 2;
             if(major == "Arts: Visual & Performing") num = 3;
             if(major == "Business") num = 4;
-            if(major == "Commu") num = 5;
+            if(major == "Commun, Fam., & Personal Svcs") num = 5;
             if(major == "Communications") num = 6;
             if(major == "Comp. Sci. & Mathematics") num = 7;
             if(major == "Education") num = 8;
@@ -82,11 +312,10 @@
             if(major == "English & Foreign Lang.") num = 11;
             if(major == "Health Admin. & Assisting") num = 12;
             if(major == "Health Sci. & Techno.") num = 13;
-            if(major == "Philosophy") num = 14;
-            if(major == "Repair") num = 15;
+            if(major == "Philosophy, Religion, & Theology") num = 14;
+            if(major == "Repair, Production, & Construction") num = 15;
             if(major == "Sciences: Biological & Physical") num = 16;
             if(major == "Social Sciences & Law") num = 17;
-
             return num;
           }
 
