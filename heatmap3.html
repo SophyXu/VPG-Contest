@@ -37,44 +37,61 @@
           majors = ["Agr", "Arc", "Are", "Art", "Bus", "Com", "Com", "C&M", "Edu", "E&D", "Eng", "E&F", "H&A", "H&T", "Phi", "Rep", "Sci", "Soc"],
           matchs = ["Agr", "Arc", "Are", "Art", "Bus", "Com", "Com", "C&M", "Edu", "E&D", "Eng", "E&F", "H&A", "H&T", "Phi", "Rep", "Sci", "Soc"];
           
-          var array_1 = array_2 = array_3 = new Array();
-          var sum_1 = sum_2 = sum_3 = new Array();
-          var max_1 = max_2 = max_3 = 0;
-
+          var array_1 = new Array();
+          var array_2 = new Array();
+          var array_3 = new Array();
+          var sum_1 = new Array();
+          var sum_2 = new Array();
+          var sum_3 = new Array();
+          var max_1 = 0;
+          var max_2 = 0;
+          var max_3 = 0;
           for(var i = 0; i < 18; ++i){
             array_1[i] = new Array();
+            array_2[i] = new Array();
+            array_3[i] = new Array();
             for(var j = 0; j < 18; ++j){
               array_1[i][j] = 0;
               array_2[i][j] = 0;
               array_3[i][j] = 0;
             }
           }
-          
+
           d3.csv("student.csv", function(d) {
               var i = major2index(d.T1_Level2);
               var j = major2index(d.HighestLevel2);
+              
               array_1[i][j] += d.count/1;
+
+              i = major2index(d.T2_Level2);
+              array_2[i][j] += d.count/1;
+
+              i = major2index(d.T3_Level2);
+              array_3[i][j] += d.count/1;
+
               return {
               };
             },
             function(error, data) {
                 for(var i = 0; i < 18; ++i)
                   for(var j = 0; j < 18; ++j) {
-                    if(array_1[i][j] > max_1)
-                      max_1 = array_1[i][j];
                     sum_1[i*18+j] = array_1[i][j];
+
+                    sum_2[i*18+j] = array_2[i][j];
+
+                    if(array_3[i][j] > max_3)
+                      max_3 = array_3[i][j];
+                    sum_3[i*18+j] = array_3[i][j];
                   }
 
                 var colorScale = d3.scale.quantile()
-                    .domain([0, buckets - 1, max_1])
+                    .domain([0, buckets - 1, max_3])
                     .range(colors);
-
                 var svg = d3.select("#chart1").append("svg")
                     .attr("width", width + margin.left + margin.right)
                     .attr("height", height + margin.top + margin.bottom)
                     .append("g")
                     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
                 var matchLabels = svg.selectAll(".matchLabel")
                     .data(matchs)
                     .enter().append("text")
@@ -84,7 +101,6 @@
                       .style("text-anchor", "end")
                       .attr("transform", "translate(-6," + gridSize / 1.5 + ")")
                       .attr("class", function (d, i) { return ((i >= 0 && i <= 17) ? "matchLabel mono axis axis-workweek" : "matchLabel mono axis"); });
-
                 var majorLabels = svg.selectAll(".majorLabel")
                     .data(majors)
                     .enter().append("text")
@@ -94,7 +110,6 @@
                       .style("text-anchor", "middle")
                       .attr("transform", "translate(" + gridSize / 2 + ", -6)")
                       .attr("class", function(d, i) { return ((i >= 0 && i <= 17) ? "timeLabel mono axis axis-worktime" : "timeLabel mono axis"); });
-
                 var heatMap = svg.selectAll(".hit")
                     .data(sum_1)
                     .enter().append("rect")
@@ -106,24 +121,19 @@
                     .attr("width", gridSize)
                     .attr("height", gridSize)
                     .style("fill", colors[0]);
-
                 heatMap.transition().duration(1000)
                     .style("fill", function(d) { return colorScale(d); });
-
                 heatMap.append("title").text(function(d) { return d; });
-
                 var legend = svg.selectAll(".legend")
                     .data([0].concat(colorScale.quantiles()), function(d) { return d; })
                     .enter().append("g")
                     .attr("class", "legend");
-
                 legend.append("rect")
                   .attr("x", function(d, i) { return legendElementWidth * i; })
                   .attr("y", height + 10)
                   .attr("width", legendElementWidth)
                   .attr("height", gridSize / 2)
                   .style("fill", function(d, i) { return colors[i]; });
-
                 legend.append("text")
                   .attr("class", "mono")
                   .text(function(d) { return "≥ " + Math.round(d); })
@@ -131,32 +141,19 @@
                   .attr("y", height + gridSize + 10);
               
           });
-
           d3.csv("student.csv", function(d) {
-              var i = major2index(d.T1_Level2);
-              var j = major2index(d.HighestLevel2);
-              array_2[i][j] += d.count/1;
               return {
               };
             },
             function(error, data) {
-                for(var i = 0; i < 18; ++i)
-                  for(var j = 0; j < 18; ++j) {
-                    if(array_2[i][j] > max_2)
-                      max_2 = array_2[i][j];
-                    sum_2[i*18+j] = array_2[i][j];
-                  }
-
                 var colorScale = d3.scale.quantile()
-                    .domain([0, buckets - 1, max_2])
+                    .domain([0, buckets - 1, max_3])
                     .range(colors);
-
-                var svg = d3.select("#chart1").append("svg")
+                var svg = d3.select("#chart2").append("svg")
                     .attr("width", width + margin.left + margin.right)
                     .attr("height", height + margin.top + margin.bottom)
                     .append("g")
                     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
                 var matchLabels = svg.selectAll(".matchLabel")
                     .data(matchs)
                     .enter().append("text")
@@ -166,7 +163,6 @@
                       .style("text-anchor", "end")
                       .attr("transform", "translate(-6," + gridSize / 1.5 + ")")
                       .attr("class", function (d, i) { return ((i >= 0 && i <= 17) ? "matchLabel mono axis axis-workweek" : "matchLabel mono axis"); });
-
                 var majorLabels = svg.selectAll(".majorLabel")
                     .data(majors)
                     .enter().append("text")
@@ -176,7 +172,6 @@
                       .style("text-anchor", "middle")
                       .attr("transform", "translate(" + gridSize / 2 + ", -6)")
                       .attr("class", function(d, i) { return ((i >= 0 && i <= 17) ? "timeLabel mono axis axis-worktime" : "timeLabel mono axis"); });
-
                 var heatMap = svg.selectAll(".hit")
                     .data(sum_2)
                     .enter().append("rect")
@@ -188,24 +183,19 @@
                     .attr("width", gridSize)
                     .attr("height", gridSize)
                     .style("fill", colors[0]);
-
                 heatMap.transition().duration(1000)
                     .style("fill", function(d) { return colorScale(d); });
-
                 heatMap.append("title").text(function(d) { return d; });
-
                 var legend = svg.selectAll(".legend")
                     .data([0].concat(colorScale.quantiles()), function(d) { return d; })
                     .enter().append("g")
                     .attr("class", "legend");
-
                 legend.append("rect")
                   .attr("x", function(d, i) { return legendElementWidth * i; })
                   .attr("y", height + 10)
                   .attr("width", legendElementWidth)
                   .attr("height", gridSize / 2)
                   .style("fill", function(d, i) { return colors[i]; });
-
                 legend.append("text")
                   .attr("class", "mono")
                   .text(function(d) { return "≥ " + Math.round(d); })
@@ -213,32 +203,19 @@
                   .attr("y", height + gridSize + 10);
               
           });
-
           d3.csv("student.csv", function(d) {
-              var i = major2index(d.T1_Level2);
-              var j = major2index(d.HighestLevel2);
-              array_3[i][j] += d.count/1;
               return {
               };
             },
             function(error, data) {
-                for(var i = 0; i < 18; ++i)
-                  for(var j = 0; j < 18; ++j) {
-                    if(array_3[i][j] > max_3)
-                      max_3 = array_3[i][j];
-                    sum_3[i*18+j] = array_3[i][j];
-                  }
-
                 var colorScale = d3.scale.quantile()
                     .domain([0, buckets - 1, max_3])
                     .range(colors);
-
-                var svg = d3.select("#chart1").append("svg")
+                var svg = d3.select("#chart3").append("svg")
                     .attr("width", width + margin.left + margin.right)
                     .attr("height", height + margin.top + margin.bottom)
                     .append("g")
                     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
                 var matchLabels = svg.selectAll(".matchLabel")
                     .data(matchs)
                     .enter().append("text")
@@ -248,7 +225,6 @@
                       .style("text-anchor", "end")
                       .attr("transform", "translate(-6," + gridSize / 1.5 + ")")
                       .attr("class", function (d, i) { return ((i >= 0 && i <= 17) ? "matchLabel mono axis axis-workweek" : "matchLabel mono axis"); });
-
                 var majorLabels = svg.selectAll(".majorLabel")
                     .data(majors)
                     .enter().append("text")
@@ -258,7 +234,6 @@
                       .style("text-anchor", "middle")
                       .attr("transform", "translate(" + gridSize / 2 + ", -6)")
                       .attr("class", function(d, i) { return ((i >= 0 && i <= 17) ? "timeLabel mono axis axis-worktime" : "timeLabel mono axis"); });
-
                 var heatMap = svg.selectAll(".hit")
                     .data(sum_3)
                     .enter().append("rect")
@@ -270,24 +245,19 @@
                     .attr("width", gridSize)
                     .attr("height", gridSize)
                     .style("fill", colors[0]);
-
                 heatMap.transition().duration(1000)
                     .style("fill", function(d) { return colorScale(d); });
-
                 heatMap.append("title").text(function(d) { return d; });
-
                 var legend = svg.selectAll(".legend")
                     .data([0].concat(colorScale.quantiles()), function(d) { return d; })
                     .enter().append("g")
                     .attr("class", "legend");
-
                 legend.append("rect")
                   .attr("x", function(d, i) { return legendElementWidth * i; })
                   .attr("y", height + 10)
                   .attr("width", legendElementWidth)
                   .attr("height", gridSize / 2)
                   .style("fill", function(d, i) { return colors[i]; });
-
                 legend.append("text")
                   .attr("class", "mono")
                   .text(function(d) { return "≥ " + Math.round(d); })
@@ -295,7 +265,6 @@
                   .attr("y", height + gridSize + 10);
               
           });
-
           function major2index(major) {
             var num = 0;
             if(major == "Agric. & Nat. Res. Cons") num = 0;
@@ -318,7 +287,6 @@
             if(major == "Social Sciences & Law") num = 17;
             return num;
           }
-
     </script>
   </body>
 </html>
