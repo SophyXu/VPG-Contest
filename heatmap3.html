@@ -35,8 +35,12 @@
           buckets = 9,
           colors = ["#ffffd9","#edf8b1","#c7e9b4","#7fcdbb","#41b6c4","#1d91c0","#225ea8","#253494","#081d58"],
           majors = ["Agr", "Arc", "Are", "Art", "Bus", "Com", "Com", "C&M", "Edu", "E&D", "Eng", "E&F", "H&A", "H&T", "Phi", "Rep", "Sci", "Soc"],
-          matchs = ["Agr", "Arc", "Are", "Art", "Bus", "Com", "Com", "C&M", "Edu", "E&D", "Eng", "E&F", "H&A", "H&T", "Phi", "Rep", "Sci", "Soc"];
-          
+          matchs = ["Agr", "Arc", "Are", "Art", "Bus", "Com", "Com", "C&M", "Edu", "E&D", "Eng", "E&F", "H&A", "H&T", "Phi", "Rep", "Sci", "Soc"],
+          range = [0, 1420, 2840, 4260, 5680, 7100, 8520, 9940, 11360];
+          var number_1 = new Array();
+          var number_2 = new Array();
+          var number_3 = new Array();
+
           var array_1 = new Array();
           var array_2 = new Array();
           var array_3 = new Array();
@@ -46,10 +50,14 @@
           var max_1 = 0;
           var max_2 = 0;
           var max_3 = 0;
+
           for(var i = 0; i < 18; ++i){
             array_1[i] = new Array();
             array_2[i] = new Array();
             array_3[i] = new Array();
+            number_1[i] = 0;
+            number_2[i] = 0;
+            number_3[i] = 0;
             for(var j = 0; j < 18; ++j){
               array_1[i][j] = 0;
               array_2[i][j] = 0;
@@ -62,12 +70,15 @@
               var j = major2index(d.HighestLevel2);
               
               array_1[i][j] += d.count/1;
+              number_1[i] += d.count/1;
 
               i = major2index(d.T2_Level2);
               array_2[i][j] += d.count/1;
+              number_2[i] += d.count/1;
 
               i = major2index(d.T3_Level2);
-              array_3[i][j] += d.count/1;
+              array_3[i][j] += d.count/1;             
+              number_3[i] += d.count/1; 
 
               return {
               };
@@ -84,9 +95,9 @@
                     sum_3[i*18+j] = array_3[i][j];
                   }
 
-                var colorScale = d3.scale.quantile()
-                    .domain([0, buckets - 1, max_3])
-                    .range(colors);
+                // Major number scale of the first year
+                var numberScale = d3.scale.linear().domain([d3.min(number_1), d3.max(number_1)]).range([10,75]);
+ 
                 var svg = d3.select("#chart1").append("svg")
                     .attr("width", width + margin.left + margin.right)
                     .attr("height", height + margin.top + margin.bottom)
@@ -113,19 +124,38 @@
                 var heatMap = svg.selectAll(".hit")
                     .data(sum_1)
                     .enter().append("rect")
-                    .attr("x", function(d, i) { return Math.floor(i/18) * gridSize; })
-                    .attr("y", function(d, i) { return i % 18 * gridSize; })
+                    .attr("x", function(d, i) {
+                      var len = 0;
+                      for (var t = 0; t < (i%18); ++t) {
+                        len += numberScale(number_1[t]);
+                      }
+                      return len; 
+                    })
+                    .attr("y", function(d, i) {
+                      var len = 0;
+                      for (var t = 0; t < (Math.floor(i/18)); ++t) {
+                        len += numberScale(number_1[t]);
+                      } 
+                      return len; 
+                    })
                     .attr("rx", 4)
                     .attr("ry", 4)
                     .attr("class", "hour bordered")
-                    .attr("width", gridSize)
-                    .attr("height", gridSize)
+                    .attr("width", function(d, i) {return numberScale(number_1[i%18]); })
+                    .attr("height", function(d, i) {return numberScale(number_1[Math.floor(i/18)]); })
                     .style("fill", colors[0]);
                 heatMap.transition().duration(1000)
-                    .style("fill", function(d) { return colorScale(d); });
+                    .style("fill", function(d) { 
+                      for (var i = 1; i < range.length; ++i) {
+                        if(d <= range[i])
+                          return colors[i-1];
+                      }
+                      return colors[range.length - 2]; 
+                    });
                 heatMap.append("title").text(function(d) { return d; });
+
                 var legend = svg.selectAll(".legend")
-                    .data([0].concat(colorScale.quantiles()), function(d) { return d; })
+                    .data(range)
                     .enter().append("g")
                     .attr("class", "legend");
                 legend.append("rect")
@@ -136,7 +166,7 @@
                   .style("fill", function(d, i) { return colors[i]; });
                 legend.append("text")
                   .attr("class", "mono")
-                  .text(function(d) { return "≥ " + Math.round(d); })
+                  .text(function(d) { return "≥ " + d; })
                   .attr("x", function(d, i) { return legendElementWidth * i; })
                   .attr("y", height + gridSize + 10);
               
@@ -146,9 +176,8 @@
               };
             },
             function(error, data) {
-                var colorScale = d3.scale.quantile()
-                    .domain([0, buckets - 1, max_3])
-                    .range(colors);
+                var numberScale = d3.scale.linear().domain([d3.min(number_2), d3.max(number_2)]).range([10,52]);
+
                 var svg = d3.select("#chart2").append("svg")
                     .attr("width", width + margin.left + margin.right)
                     .attr("height", height + margin.top + margin.bottom)
@@ -175,19 +204,38 @@
                 var heatMap = svg.selectAll(".hit")
                     .data(sum_2)
                     .enter().append("rect")
-                    .attr("x", function(d, i) { return Math.floor(i/18) * gridSize; })
-                    .attr("y", function(d, i) { return i % 18 * gridSize; })
+                    .attr("x", function(d, i) {
+                      var len = 0;
+                      for (var t = 0; t < (i%18); ++t) {
+                        len += numberScale(number_2[t]);
+                      }
+                      return len; 
+                    })
+                    .attr("y", function(d, i) {
+                      var len = 0;
+                      for (var t = 0; t < (Math.floor(i/18)); ++t) {
+                        len += numberScale(number_2[t]);
+                      } 
+                      return len; 
+                    })
                     .attr("rx", 4)
                     .attr("ry", 4)
                     .attr("class", "hour bordered")
-                    .attr("width", gridSize)
-                    .attr("height", gridSize)
+                    .attr("width", function(d, i) {return numberScale(number_2[i%18]); })
+                    .attr("height", function(d, i) {return numberScale(number_2[Math.floor(i/18)]); })
                     .style("fill", colors[0]);
                 heatMap.transition().duration(1000)
-                    .style("fill", function(d) { return colorScale(d); });
+                    .style("fill", function(d) { 
+                      for (var i = 1; i < range.length; ++i) {
+                        if(d <= range[i])
+                          return colors[i-1];
+                      }
+                      return colors[range.length - 2]; 
+                    });
                 heatMap.append("title").text(function(d) { return d; });
+
                 var legend = svg.selectAll(".legend")
-                    .data([0].concat(colorScale.quantiles()), function(d) { return d; })
+                    .data(range)
                     .enter().append("g")
                     .attr("class", "legend");
                 legend.append("rect")
@@ -198,7 +246,7 @@
                   .style("fill", function(d, i) { return colors[i]; });
                 legend.append("text")
                   .attr("class", "mono")
-                  .text(function(d) { return "≥ " + Math.round(d); })
+                  .text(function(d) { return "≥ " + d; })
                   .attr("x", function(d, i) { return legendElementWidth * i; })
                   .attr("y", height + gridSize + 10);
               
@@ -208,9 +256,8 @@
               };
             },
             function(error, data) {
-                var colorScale = d3.scale.quantile()
-                    .domain([0, buckets - 1, max_3])
-                    .range(colors);
+                var numberScale = d3.scale.linear().domain([d3.min(number_2), d3.max(number_2)]).range([10,52]);
+
                 var svg = d3.select("#chart3").append("svg")
                     .attr("width", width + margin.left + margin.right)
                     .attr("height", height + margin.top + margin.bottom)
@@ -237,19 +284,38 @@
                 var heatMap = svg.selectAll(".hit")
                     .data(sum_3)
                     .enter().append("rect")
-                    .attr("x", function(d, i) { return Math.floor(i/18) * gridSize; })
-                    .attr("y", function(d, i) { return i % 18 * gridSize; })
+                    .attr("x", function(d, i) {
+                      var len = 0;
+                      for (var t = 0; t < (i%18); ++t) {
+                        len += numberScale(number_3[t]);
+                      }
+                      return len; 
+                    })
+                    .attr("y", function(d, i) {
+                      var len = 0;
+                      for (var t = 0; t < (Math.floor(i/18)); ++t) {
+                        len += numberScale(number_3[t]);
+                      } 
+                      return len; 
+                    })
                     .attr("rx", 4)
                     .attr("ry", 4)
                     .attr("class", "hour bordered")
-                    .attr("width", gridSize)
-                    .attr("height", gridSize)
+                    .attr("width", function(d, i) {return numberScale(number_3[i%18]); })
+                    .attr("height", function(d, i) {return numberScale(number_3[Math.floor(i/18)]); })
                     .style("fill", colors[0]);
                 heatMap.transition().duration(1000)
-                    .style("fill", function(d) { return colorScale(d); });
+                    .style("fill", function(d) { 
+                      for (var i = 1; i < range.length; ++i) {
+                        if(d <= range[i])
+                          return colors[i-1];
+                      }
+                      return colors[range.length - 2]; 
+                    });
                 heatMap.append("title").text(function(d) { return d; });
+
                 var legend = svg.selectAll(".legend")
-                    .data([0].concat(colorScale.quantiles()), function(d) { return d; })
+                    .data(range)
                     .enter().append("g")
                     .attr("class", "legend");
                 legend.append("rect")
@@ -260,7 +326,7 @@
                   .style("fill", function(d, i) { return colors[i]; });
                 legend.append("text")
                   .attr("class", "mono")
-                  .text(function(d) { return "≥ " + Math.round(d); })
+                  .text(function(d) { return "≥ " + d; })
                   .attr("x", function(d, i) { return legendElementWidth * i; })
                   .attr("y", height + gridSize + 10);
               
