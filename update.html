@@ -33,25 +33,25 @@
       .link {
         fill: none;
         stroke: #000;
-        stroke-opacity: .2;
+        stroke-opacity: .5;
       }
        
       .link:hover {
-        stroke-opacity: .5;
+        stroke-opacity: .8;
       }
 
       div.small{
         border: 0px solid #000;
-        width: 700px;
-        height: 900px;
-        margin-top: 100px;
+        width: 720px;
+        height: 760px;
+        margin-top: 120px;
         float: left;
       }
       div.sankey{
         border: 0px solid #000;
-        width: 200px;
-        height: 900px;
-        margin-top: 100px;
+        width: 180px;
+        height: 760px;
+        margin-top: 120px;
         float: left;
       }
     </style>
@@ -68,18 +68,25 @@
     </div>
 
     <script type="text/javascript">
-      var margin = { top: 50, right: 0, bottom: 100, left: 30 },
-          width = 700 - margin.left - margin.right,
+      var margin = { top: 50, right: 0, bottom: 100, left: 50 },
+          width = 720 - margin.left - margin.right,
           height = 900 - margin.top - margin.bottom,
           gridSize = Math.floor(width / 36),
-          legendElementWidth = gridSize*2.56,
+          legendElementWidth = gridSize*5.3,
           buckets = 7,
           colors = ["#ffffd9","#c7e9b4","#7fcdbb","#41b6c4","#1d91c0","#225ea8","#081d58"],
           // colors = ["#ffffd9","#edf8b1","#c7e9b4","#7fcdbb","#41b6c4","#1d91c0","#225ea8","#253494","#081d58"],
-          majors = ["Agr", "Arc", "Are", "Art", "Bus", "Com", "Com", "C&M", "Edu", "E&D", "Eng", "E&F", "H&A", "H&T", "Phi", "Rep", "Sci", "Soc"],
+          majors = ["A&N", "ARC", "A&M", "ART", "BUS", "C&P", "COM", "C&M", "EDU", "E&D", "ENG", "E&F", "H&A", "H&T", "P&T", "R&C", "SCI", "S&L"],
           majorss = ["Agric. & Nat. Res. Cons","Architecture","Area, Eth. & Multidiscip. Studies","Arts: Visual & Performing","Business","Commun, Fam., & Personal Svcs","Communications","Comp. Sci. & Mathematics","Education","Eng. Tech. & Drafting","Engineering","English & Foreign Lang.","Health Admin. & Assisting","Health Sci. & Techno.","Philosophy, Religion, & Theology","Repair, Production, & Construction","Sciences: Biological & Physical", "Social Sciences & Law"],
-          matchs = ["Bus", "Edu", "Com", "H&T", "C&M", "H&A", "Art", "Rep", "Agr", "Soc", "Com", "E&F", "E&D", "Are", "Sci", "Eng", "Phi", "Arc"],
+          matchs = ["BUS", "EDU", "C&P", "H&T", "C&M", "H&A", "ART", "R&C", "A&N", "S&L", "COM", "E&F", "E&D", "A&M", "SCI", "ENG", "P&T", "ARC"],
+          matchess = ["Business", "Education", "Commun, Fam., & Personal Svcs", "Health Sci. & Techno.", "Comp. Sci. & Mathematics", "Health Admin. & Assisting", "Art", "Repair, Production, & Construction", "Agr", "Social Sciences & Law", "Communications", "English & Foreign Lang.", "Eng. Tech. & Drafting", "Are", "Sciences: Biological & Physical", "Engineering", "Philosophy, Religion, & Theology", "Arc"],
           range = [0, 0.05, 0.1, 0.15, 0.25, 0.35, 0.4];
+
+          var squareWidth = 669;
+
+          var scale_1 = [0.0440, 0.0396, 0.0134, 0.0697, 0.0833, 0.0443, 0.0513, 0.0524, 0.0663, 0.0402, 0.0840, 0.0403, 0.0500, 0.1076, 0.0265, 0.0307, 0.0786, 0.0778];
+          var scale_2 = [0.0487, 0.0278, 0.0150, 0.0642, 0.0884, 0.0698, 0.0537, 0.0542, 0.0648, 0.0407, 0.0830, 0.0436, 0.0335, 0.0835, 0.0256, 0.0373, 0.0907, 0.0753];
+          var scale_3 = [0.0489, 0.0273, 0.0156, 0.0631, 0.0902, 0.0729, 0.0561, 0.0553, 0.0654, 0.0406, 0.0794, 0.0448, 0.0346, 0.0799, 0.0261, 0.0380, 0.0855, 0.0762];
 
           // number of people for a major
           var number_1 = new Array();
@@ -157,6 +164,8 @@
               };
             },
             function(error, data) {
+              console.log(number_1[13]);
+              console.log(transfer_12[13][13]);
               for(var i = 0; i < 18; ++i)
                 for(var j = 0; j < 18; ++j) {
                   transfer_12[i][j] = transfer_12[i][j] / number_1[i];
@@ -169,11 +178,16 @@
                   sum += array_1[i][j] / number_1[i];
                 }
               }
-              for(var i = 0; i < 18; ++i)
-                for(var j = 0; j < 18; ++j) {
-                  if(transfer_23[i][j] > 0.1 && (i != j))
-                  console.log("{\"source\":\"" + majorss[i] + "\",\"target\":\"" + majorss[j] + "*\",\"value\":\"" + transfer_23[i][j] + "\"},");
-                }
+              // for(var i = 0; i < 18; ++i)
+              //   for(var j = 0; j < 18; ++j) {
+              //     if(transfer_23[i][j] > 0 && i != j)
+              //     console.log("{\"source\":\"" + majorss[demap(i)] + "\",\"target\":\"" + majorss[demap(j)] + "*\",\"value\":\"" + transfer_23[i][j] + "\"},");
+              //   }   
+
+              // console.log(majorss[3]);
+              // console.log(majorss[3]);
+              // console.log(transfer_12[3][3]);
+
               for(var i = 0; i < 18; ++i)
                 for(var j = 0; j < 18; ++j) {
                   sum_1[i*18+j] = array_1[i][j];
@@ -185,12 +199,6 @@
                   sum_3[i*18+j] = array_3[i][j];
                 }
 
-              var test = new Array();
-              // numberScale_1 = d3.scale.log().base(10).domain([d3.min(number_1), d3.max(number_1)]).range([height/7.5,0]);
-              // console.log(numberScale_1);
-              // numberScale_1 = d3.scale.linear().domain([d3.min(number_1), d3.max(number_1)]).range([10,129]);
-              // numberScale_2 = d3.scale.log().base(10).domain([d3.min(number_2), d3.max(number_2)]).range([0,50]);
-              // numberScale_3 = d3.scale.log().base(10).domain([d3.min(number_2), d3.max(number_2)]).range([10,50]);
               numberScale_1 = d3.scale.linear().domain([d3.min(number_1), d3.max(number_1)]).range([10,129]);
               numberScale_2 = d3.scale.linear().domain([d3.min(number_2), d3.max(number_2)]).range([10,89]);
               numberScale_3 = d3.scale.linear().domain([d3.min(number_3), d3.max(number_3)]).range([10,89]);
@@ -208,12 +216,13 @@
                     .attr("y", function(d, i) {
                       var len = 0; 
                       for (var t = 0; t < (Math.floor(i%18)); ++t) {
-                        len += numberScale_1(number_1[t]);
+                        len += scale_1[demap(t)]*squareWidth;
                       } 
-                      len += 0.5 * numberScale_1(number_1[t]);
+                      len += 0.5 * scale_1[demap(t)]*squareWidth;
                       return (len-10); 
                     })
                     .style("text-anchor", "end")
+                    .style("font-size","15px")
                     .attr("transform", "translate(-6," + gridSize / 1.5 + ")")
                     .attr("class", function (d, i) { return ((i >= 0 && i <= 17) ? "matchLabel mono axis axis-workweek" : "matchLabel mono axis"); });
               // var majorLabels = svg.selectAll(".majorLabel")
@@ -231,22 +240,22 @@
                   .attr("x", function(d, i) {
                     var len = 0;
                     for (var t = 0; t < (i%18); ++t) {
-                      len += numberScale_1(number_1[t]);
+                      len += scale_1[demap(t)]*squareWidth;
                     }
                     return len; 
                   })
                   .attr("y", function(d, i) {
                     var len = 0;
                     for (var t = 0; t < (Math.floor(i/18)); ++t) {
-                      len += numberScale_1(number_1[t]);
+                      len += scale_1[demap(t)]*squareWidth;
                     } 
                     return len; 
                   })
                   .attr("rx", 4)
                   .attr("ry", 4)
                   .attr("class", "hour bordered")
-                  .attr("width", function(d, i) {return numberScale_1(number_1[i%18]); })
-                  .attr("height", function(d, i) {return numberScale_1(number_1[Math.floor(i/18)]); })
+                  .attr("width", function(d, i) {return scale_1[demap(i%18)]*squareWidth; })
+                  .attr("height", function(d, i) {return scale_1[demap(Math.floor(i/18))]*squareWidth; })
                   .style("fill", colors[0]);
               heatMap.transition().duration(1000)
                   .style("fill", function(d, i) {
@@ -274,7 +283,8 @@
                 .attr("class", "mono")
                 .text(function(d) { return "≥ " + d; })
                 .attr("x", function(d, i) { return legendElementWidth * i; })
-                .attr("y", height + gridSize + 10);
+                .attr("y", height + gridSize + 15)
+                .style("font-size", "15px");
               
           });
           d3.csv("student.csv", function(d) {
@@ -283,8 +293,8 @@
             },
             function(error, data) {
                 var svg = d3.select("#chart2").append("svg")
-                    .attr("width", width + margin.left + margin.right)
-                    .attr("height", height + margin.top + margin.bottom)
+                    .attr("width", width*3 + margin.left + margin.right)
+                    .attr("height", height*2 + margin.top + margin.bottom)
                     .append("g")
                     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
                 var matchLabels = svg.selectAll(".matchLabel")
@@ -295,47 +305,41 @@
                      })
                       .attr("x", 0)
                       .attr("y", function(d, i) {
-                        var len = 0;
+                        var len = 5;
                         for (var t = 0; t < (Math.floor(i%18)); ++t) {
-                          len += numberScale_2(number_2[t]);
+                          len += scale_2[demap(t)]*squareWidth;
                         } 
-                        len += 0.5 * numberScale_2(number_2[t]);
+                        len += 0.5 * scale_2[demap(t)]*squareWidth;
+                        if(i == 0) len += 7;
+                        if(i == 13) len -= 3;
                         return (len-10); 
                       })
                       .style("text-anchor", "end")
-                      .attr("transform", "translate(-6," + gridSize / 1.5 + ")")
+                      .style("font-size","15px")
+                      .attr("transform", "translate(-7," + gridSize / 1.5 + ")")
                       .attr("class", function (d, i) { return ((i >= 0 && i <= 17) ? "matchLabel mono axis axis-workweek" : "matchLabel mono axis"); });
-                // var majorLabels = svg.selectAll(".majorLabel")
-                //     .data(majors)
-                //     .enter().append("text")
-                //       .text(function(d) { return d; })
-                //       .attr("x", function(d, i) { return i * gridSize; })
-                //       .attr("y", 0)
-                //       .style("text-anchor", "middle")
-                //       .attr("transform", "translate(" + gridSize / 2 + ", -6)")
-                //       .attr("class", function(d, i) { return ((i >= 0 && i <= 17) ? "timeLabel mono axis axis-worktime" : "timeLabel mono axis"); });
                 var heatMap = svg.selectAll(".hit")
                     .data(sum_2)
                     .enter().append("rect")
                     .attr("x", function(d, i) {
                       var len = 0;
                       for (var t = 0; t < (i%18); ++t) {
-                        len += numberScale_2(number_2[t]);
+                        len += scale_2[demap(t)]*squareWidth;
                       }
                       return len; 
                     })
                     .attr("y", function(d, i) {
                       var len = 0;
                       for (var t = 0; t < (Math.floor(i/18)); ++t) {
-                        len += numberScale_2(number_2[t]);
+                        len += scale_2[demap(t)]*squareWidth;
                       } 
                       return len; 
                     })
                     .attr("rx", 4)
                     .attr("ry", 4)
                     .attr("class", "hour bordered")
-                    .attr("width", function(d, i) {return numberScale_2(number_2[i%18]); })
-                    .attr("height", function(d, i) {return numberScale_2(number_2[Math.floor(i/18)]); })
+                    .attr("width", function(d, i) {return scale_2[demap(i%18)]*squareWidth; })
+                    .attr("height", function(d, i) {return scale_2[demap(Math.floor(i/18))]*squareWidth; })
                     .style("fill", colors[0]);
                 heatMap.transition().duration(1000)
                     .style("fill", function(d, i) { 
@@ -347,21 +351,26 @@
                     });
                 heatMap.append("title").text(function(d, i) { return d/number_2[Math.floor(i/18)]; });
 
-                // var legend = svg.selectAll(".legend")
-                //     .data(range)
-                //     .enter().append("g")
-                //     .attr("class", "legend");
-                // legend.append("rect")
-                //   .attr("x", function(d, i) { return legendElementWidth * i; })
-                //   .attr("y", height + 10)
-                //   .attr("width", legendElementWidth)
-                //   .attr("height", gridSize / 2)
-                //   .style("fill", function(d, i) { return colors[i]; });
-                // legend.append("text")
-                //   .attr("class", "mono")
-                //   .text(function(d) { return "≥ " + d; })
-                //   .attr("x", function(d, i) { return legendElementWidth * i; })
-                //   .attr("y", height + gridSize + 10);
+                var abbreviation = svg.selectAll(".legend")
+                    .data(majors)
+                    .enter().append("g");
+                abbreviation.append("text")
+                  .attr("class", "mono")
+                  .text(function(d) { return d; })
+                  .attr("x", function(d, i) { return 520 * Math.floor(i/6); })
+                  .attr("y", function(d, i) { console.log(i); return height + 30 * (i % 6); })
+                  .style("fill", "black")
+                  .style("font-size", "15px");
+
+                var name = svg.selectAll(".legend")
+                    .data(majorss)
+                    .enter().append("g");
+                name.append("text")
+                  .attr("class", "mono")
+                  .text(function(d) { return d; })
+                  .attr("x", function(d, i) { return 510 * Math.floor(i/6) + 100; })
+                  .attr("y", function(d, i) { return height + 30 * (i % 6); })
+                  .style("font-size", "15px");
           });
           d3.csv("student.csv", function(d) {
               return {
@@ -381,12 +390,13 @@
                       .attr("y", function(d, i) {
                         var len = 0;
                         for (var t = 0; t < (Math.floor(i%18)); ++t) {
-                          len += numberScale_3(number_3[t]);
+                          len += scale_3[demap(t)]*squareWidth;
                         } 
-                        len += 0.5 * numberScale_3(number_3[t]);
+                        len += 0.5 * scale_3[demap(t)]*squareWidth;
                         return (len-10); 
                       })
                       .style("text-anchor", "end")
+                      .style("font-size","15px")
                       .attr("transform", "translate(-6," + gridSize / 1.5 + ")")
                       .attr("class", function (d, i) { return ((i >= 0 && i <= 17) ? "matchLabel mono axis axis-workweek" : "matchLabel mono axis"); });
                 // var majorLabels = svg.selectAll(".majorLabel")
@@ -404,22 +414,22 @@
                     .attr("x", function(d, i) {
                       var len = 0;
                       for (var t = 0; t < (i%18); ++t) {
-                        len += numberScale_3(number_3[t]);
+                        len += scale_3[demap(t)]*squareWidth;
                       }
                       return len; 
                     })
                     .attr("y", function(d, i) {
                       var len = 0;
                       for (var t = 0; t < (Math.floor(i/18)); ++t) {
-                        len += numberScale_3(number_3[t]);
+                        len += scale_3[demap(t)]*squareWidth;
                       } 
                       return len; 
                     })
                     .attr("rx", 4)
                     .attr("ry", 4)
                     .attr("class", "hour bordered")
-                    .attr("width", function(d, i) {return numberScale_3(number_3[i%18]); })
-                    .attr("height", function(d, i) {return numberScale_3(number_3[Math.floor(i/18)]); })
+                    .attr("width", function(d, i) {return scale_3[demap(i%18)]*squareWidth; })
+                    .attr("height", function(d, i) {return scale_3[demap(Math.floor(i/18))]*squareWidth; })
                     .style("fill", colors[0]);
                 heatMap.transition().duration(1000)
                     .style("fill", function(d, i) { 
@@ -450,25 +460,6 @@
           });
           function major2index(major) {
             var num = 0;
-            // if(major == "Agric. & Nat. Res. Cons") num = 0;
-            // if(major == "Architecture") num = 1;
-            // if(major == "Area, Eth. & Multidiscip. Studies") num = 2;
-            // if(major == "Arts: Visual & Performing") num = 3;
-            // if(major == "Business") num = 4;
-            // if(major == "Commun, Fam., & Personal Svcs") num = 5;
-            // if(major == "Communications") num = 6;
-            // if(major == "Comp. Sci. & Mathematics") num = 7;
-            // if(major == "Education") num = 8;
-            // if(major == "Eng. Tech. & Drafting") num = 9;
-            // if(major == "Engineering") num = 10;
-            // if(major == "English & Foreign Lang.") num = 11;
-            // if(major == "Health Admin. & Assisting") num = 12;
-            // if(major == "Health Sci. & Techno.") num = 13;
-            // if(major == "Philosophy, Religion, & Theology") num = 14;
-            // if(major == "Repair, Production, & Construction") num = 15;
-            // if(major == "Sciences: Biological & Physical") num = 16;
-            // if(major == "Social Sciences & Law") num = 17;
-
             if(major == "Agric. & Nat. Res. Cons") num = 8;
             if(major == "Architecture") num = 17;
             if(major == "Area, Eth. & Multidiscip. Studies") num = 13;
@@ -490,15 +481,14 @@
             return num;
           }
 
-          sankeyGraph("#chart4", "raw.json");
-          sankeyGraph("#chart5", "raw_2.json");
+        sankeyGraph("#chart4", "raw.json");
+        sankeyGraph("#chart5", "raw_2.json");
 
-          function sankeyGraph(id, file) {
-          // Sankey
+        function sankeyGraph(id, file) {
           var units = "Widgets";
            
           var margin_sankey = {top: margin.top, right: 0, bottom: 10, left: 0},
-              width_sankey = 200 - margin_sankey.left - margin_sankey.right + margin.left,
+              width_sankey = 180 - margin_sankey.left - margin_sankey.right + margin.left,
               height_sankey = 900 - margin_sankey.top - margin_sankey.bottom;
            
           var formatNumber = d3.format(",.0f"),
@@ -514,7 +504,7 @@
                     "translate(" + margin_sankey.left + "," + margin_sankey.top + ")");
            
           var sankey = d3.sankey()
-              .nodeWidth(1)
+              .nodeWidth(0)
               .nodePadding(0)
               .size([width_sankey, height_sankey]);
            
@@ -541,37 +531,50 @@
                 .layout(0);
            
           graph.links.forEach(function(link, i){
-            link.dy = link.value*numberScale_1(number_1[major2index(link.source.name)]);
+            if(id == "#chart4") {
+              link.dy = link.value*scale_1[demap(major2index(link.source.name))]*squareWidth;
+            }
+            else
+              link.dy = link.value*scale_2[demap(major2index(link.source.name))]*squareWidth;
           });
 
           graph.nodes.forEach(function(node, i) {
-              node.x = (i<18)?0:(width_sankey-1);
+              node.x = (i<18)?0:(width_sankey-0);
               var len = 0;
               if(i<18) {
-                for (var t = 0; t < i; ++t)
-                  len += numberScale_1(number_1[t]);
-                // len += 1/2 * numberScale_1(number_1[t]);
+                for (var t = 0; t < i; ++t) {
+                  if(id == "#chart4") len += scale_1[demap(t)]*squareWidth;
+                  else len += scale_2[demap(t)]*squareWidth;
+                }
               }
               else {
-                for (var t = 0; t < i%18; ++t)
-                  len += numberScale_2(number_2[t]);
-                // len += 1/2 * numberScale_2(number_2[t]);
+                for (var t = 0; t < i%18; ++t) {
+                  if(id == "#chart4") len += scale_2[demap(t)]*squareWidth;
+                  else len += scale_3[demap(t)]*squareWidth;
+                }
               }
               node.y = len;
           });
 
           sankey.relayout();
 
+          var color = d3.scale.category20();
           // Link height
           var link = svg.append("g").selectAll(".link")
               .data(graph.links)
             .enter().append("path")
               .attr("class", "link")
               .attr("d", path)
-              .style("stroke-width", function(d, i) { 
-                  return d.dy;
+              .style("stroke-width", function(d, i) {
+                return d.dy;
               })
-              .sort(function(a, b) { return b.dy - a.dy; });
+              .style("stroke", function(d){
+                if(d.value > 0.1)
+                  return "#101010";
+                else
+                  return "#e0e0e0";
+              })
+              .sort(function(a, b) { return a.value - b.value; });
 
           // add in the nodes
           var node = svg.append("g").selectAll(".node")
@@ -585,18 +588,22 @@
               .on("dragstart", function() { 
               this.parentNode.appendChild(this); })
               .on("drag", dragmove));
-
-          sankey.relayout();
-           
+          
           // Node height
           node.append("rect")
               .attr("height", function(d, i) { 
                 if(i < 18) {
-                  return numberScale_1(number_1[i]);
+                  if(id == "#chart4") {
+                    return scale_1[demap(i)]*squareWidth; }
+                  else {
+                      return scale_2[demap(i)]*squareWidth; }
                 }
                 else {
-                  i = i - 18;
-                  return numberScale_2(number_2[i]);
+                  i -= 18;
+                  if(id == "#chart4") {
+                    return scale_2[demap(i)]*squareWidth; }
+                  else {
+                    return scale_3[demap(i)]*squareWidth; }
                 }
               })
               .attr("width", sankey.nodeWidth())
@@ -606,7 +613,7 @@
               .text(function(d) { 
               return d.name + "\n" + format(d.value); });
 
-          sankey.relayout();
+          console.log(graph.links);
 
           // the function for moving the nodes
           function dragmove(d) {
@@ -620,7 +627,57 @@
             link.attr("d", path);
           }
         });
-}
+      }
+      function map(num) {
+        var index = 0;
+        switch(num)
+        {
+          case 0: index = 8; break;
+          case 1: index = 17; break;
+          case 2: index = 13; break;
+          case 3: index = 6; break;
+          case 4: index = 0; break;
+          case 5: index = 2; break;
+          case 6: index = 10; break;
+          case 7: index = 4; break;
+          case 8: index = 1; break;
+          case 9: index = 12; break;
+          case 10: index = 15; break;
+          case 11: index = 11; break;
+          case 12: index = 5; break;
+          case 13: index = 3; break;
+          case 14: index = 16; break;
+          case 15: index = 7; break;
+          case 16: index = 14; break;
+          case 17: index = 9; break; 
+        }
+        return index;
+      }
+      function demap(num) {
+        var index = 0;
+        switch(num)
+        {
+          case 8: index = 0; break;
+          case 17: index = 1; break;
+          case 13: index = 2; break;
+          case 6: index = 3; break;
+          case 0: index = 4; break;
+          case 2: index = 5; break;
+          case 10: index = 6; break;
+          case 4: index = 7; break;
+          case 1: index = 8; break;
+          case 12: index = 9; break;
+          case 15: index = 10; break;
+          case 11: index = 11; break;
+          case 5: index = 12; break;
+          case 3: index = 13; break;
+          case 16: index = 14; break;
+          case 7: index = 15; break;
+          case 14: index = 16; break;
+          case 9: index = 17; break; 
+        }
+        return index;
+      }
     </script>
   </body>
 </html>
