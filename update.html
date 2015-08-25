@@ -39,19 +39,22 @@
       .link:hover {
         stroke-opacity: .8;
       }
-
+      div.bar{
+        border: 1px solid #000;
+        width: 2530px; 
+        height: 170px;     
+        float: top;  
+      }
       div.small{
-        border: 0px solid #000;
+        border: 1px solid #000;
         width: 720px;
         height: 760px;
-        margin-top: 120px;
         float: left;
       }
       div.sankey{
-        border: 0px solid #000;
+        border: 1px solid #000;
         width: 180px;
         height: 760px;
-        margin-top: 120px;
         float: left;
       }
     </style>
@@ -60,6 +63,7 @@
   </head>
   <body>
     <div >
+      <div class="bar">d</div>
       <div class="small" id="chart1"></div>
       <div class="sankey" id="chart4"></div>
       <div class="small" id="chart2"></div>
@@ -68,11 +72,11 @@
     </div>
 
     <script type="text/javascript">
-      var margin = { top: 50, right: 0, bottom: 100, left: 50 },
-          width = 720 - margin.left - margin.right,
+      var margin = { top: 0, right: 0, bottom: 100, left: 50 },
+          width = 750 - margin.left - margin.right,
           height = 900 - margin.top - margin.bottom,
           gridSize = Math.floor(width / 36),
-          legendElementWidth = gridSize*5.3,
+          legendElementWidth = gridSize*5.05,
           buckets = 7,
           colors = ["#ffffd9","#c7e9b4","#7fcdbb","#41b6c4","#1d91c0","#225ea8","#081d58"],
           // colors = ["#ffffd9","#edf8b1","#c7e9b4","#7fcdbb","#41b6c4","#1d91c0","#225ea8","#253494","#081d58"],
@@ -83,6 +87,8 @@
           range = [0, 0.05, 0.1, 0.15, 0.25, 0.35, 0.4];
 
           var squareWidth = 669;
+          var linePadding = 13;
+          var rowPadding = 10;
 
           var scale_1 = [0.0440, 0.0396, 0.0134, 0.0697, 0.0833, 0.0443, 0.0513, 0.0524, 0.0663, 0.0402, 0.0840, 0.0403, 0.0500, 0.1076, 0.0265, 0.0307, 0.0786, 0.0778];
           var scale_2 = [0.0487, 0.0278, 0.0150, 0.0642, 0.0884, 0.0698, 0.0537, 0.0542, 0.0648, 0.0407, 0.0830, 0.0436, 0.0335, 0.0835, 0.0256, 0.0373, 0.0907, 0.0753];
@@ -139,10 +145,10 @@
           }
 
           d3.csv("student.csv", function(d) {
-              var i = major2index(d.T1_Level2);
-              var j = major2index(d.HighestLevel2);
-              var ii = major2index(d.T2_Level2);
-              var iii = major2index(d.T3_Level2);
+              var i = major2index_1(d.T1_Level2);
+              var j = major2index_1(d.HighestLevel2);
+              var ii = major2index_1(d.T2_Level2);
+              var iii = major2index_1(d.T3_Level2);
 
               transfer_12[i][ii] += d.count/1;
               transfer_23[ii][iii] += d.count/1;
@@ -150,11 +156,13 @@
               array_1[i][j] += d.count/1;
               number_1[i] += d.count/1;
 
-              i = major2index(d.T2_Level2);
+              i = major2index_2(d.T2_Level2);
+              j = major2index_2(d.HighestLevel2);
               array_2[i][j] += d.count/1;
               number_2[i] += d.count/1;
 
-              i = major2index(d.T3_Level2);
+              i = major2index_3(d.T3_Level2);
+              j = major2index_3(d.HighestLevel2);
               array_3[i][j] += d.count/1;             
               number_3[i] += d.count/1; 
 
@@ -164,8 +172,6 @@
               };
             },
             function(error, data) {
-              console.log(number_1[13]);
-              console.log(transfer_12[13][13]);
               for(var i = 0; i < 18; ++i)
                 for(var j = 0; j < 18; ++j) {
                   transfer_12[i][j] = transfer_12[i][j] / number_1[i];
@@ -175,13 +181,22 @@
               for(var j = 0; j < 18; ++j) {
                 var sum = 0;
                 for(var i = 0; i < 18; ++i) {
+                  sum += array_2[i][j] / number_2[i];
+                }
+                console.log(sum);
+              }
+              console.log("######")
+              for(var j = 0; j < 18; ++j) {
+                var sum = 0;
+                for(var i = 0; i < 18; ++i) {
                   sum += array_1[i][j] / number_1[i];
                 }
+                console.log(sum);
               }
               // for(var i = 0; i < 18; ++i)
               //   for(var j = 0; j < 18; ++j) {
               //     if(transfer_23[i][j] > 0 && i != j)
-              //     console.log("{\"source\":\"" + majorss[demap(i)] + "\",\"target\":\"" + majorss[demap(j)] + "*\",\"value\":\"" + transfer_23[i][j] + "\"},");
+              //     console.log("{\"source\":\"" + majorss[demap_1(i)] + "\",\"target\":\"" + majorss[demap_1(j)] + "*\",\"value\":\"" + transfer_23[i][j] + "\"},");
               //   }   
 
               // console.log(majorss[3]);
@@ -216,46 +231,90 @@
                     .attr("y", function(d, i) {
                       var len = 0; 
                       for (var t = 0; t < (Math.floor(i%18)); ++t) {
-                        len += scale_1[demap(t)]*squareWidth;
+                        len += scale_1[demap_1(t)]*squareWidth;
                       } 
-                      len += 0.5 * scale_1[demap(t)]*squareWidth;
+                      len += 0.5 * scale_1[demap_1(t)]*squareWidth;
                       return (len-10); 
                     })
                     .style("text-anchor", "end")
                     .style("font-size","15px")
                     .attr("transform", "translate(-6," + gridSize / 1.5 + ")")
                     .attr("class", function (d, i) { return ((i >= 0 && i <= 17) ? "matchLabel mono axis axis-workweek" : "matchLabel mono axis"); });
-              // var majorLabels = svg.selectAll(".majorLabel")
-              //     .data(majors)
-              //     .enter().append("text")
-              //       .text(function(d) { return d; })
-              //       .attr("x", function(d, i) { return i * gridSize; })
-              //       .attr("y", 0)
-              //       .style("text-anchor", "middle")
-              //       .attr("transform", "translate(" + gridSize / 2 + ", -6)")
-              //       .attr("class", function(d, i) { return ((i >= 0 && i <= 17) ? "timeLabel mono axis axis-worktime" : "timeLabel mono axis"); });                    
+
+              var majorLabels_1 = svg.selectAll(".majorLabel")
+                  .data(matchs)
+                  .enter().append("text")
+                    .text(function(d) { return d[0]; })
+                    .attr("x", function(d, i) {
+                      var len = 0;
+                      for (var t = 0; t < (Math.floor(i%18)); ++t) {
+                        len += scale_1[demap_1(t)]*squareWidth;
+                      } 
+                      len += 0.5 * scale_1[demap_1(t)]*squareWidth;
+                      return (len-10); 
+                    })
+                    .attr("y", squareWidth + 20)
+                    .style("text-anchor", "middle")
+                    .style("font-size","15px")
+                    .attr("transform", "translate(" + gridSize / 1.5 + ", -6)")
+                    .attr("class", function(d, i) { return ((i >= 0 && i <= 17) ? "timeLabel mono axis axis-worktime" : "timeLabel mono axis"); }); 
+              var majorLabels_2 = svg.selectAll(".majorLabel")
+                  .data(matchs)
+                  .enter().append("text")
+                    .text(function(d) { return d[1]; })
+                    .attr("x", function(d, i) {
+                      var len = rowPadding;
+                      for (var t = 0; t < (Math.floor(i%18)); ++t) {
+                        len += scale_1[demap_1(t)]*squareWidth;
+                      } 
+                      len += 0.5 * scale_1[demap_1(t)]*squareWidth;
+                      return (len-10); 
+                    })
+                    .attr("y", squareWidth + 20 + linePadding)
+                    .style("text-anchor", "middle")
+                    .style("font-size","15px")
+                    .attr("transform", "translate(" + gridSize / 1.5 + ", -6)")
+                    .attr("class", function(d, i) { return ((i >= 0 && i <= 17) ? "timeLabel mono axis axis-worktime" : "timeLabel mono axis"); }); 
+              var majorLabels_3 = svg.selectAll(".majorLabel")
+                  .data(matchs)
+                  .enter().append("text")
+                    .text(function(d) { return d[2]; })
+                    .attr("x", function(d, i) {
+                      var len = rowPadding * 2;
+                      for (var t = 0; t < (Math.floor(i%18)); ++t) {
+                        len += scale_1[demap_1(t)]*squareWidth;
+                      } 
+                      len += 0.5 * scale_1[demap_1(t)]*squareWidth;
+                      return (len-10); 
+                    })
+                    .attr("y", squareWidth + 20 + linePadding * 2)
+                    .style("text-anchor", "middle")
+                    .style("font-size","15px")
+                    .attr("transform", "translate(" + gridSize / 1.5 + ", -6)")
+                    .attr("class", function(d, i) { return ((i >= 0 && i <= 17) ? "timeLabel mono axis axis-worktime" : "timeLabel mono axis"); }); 
+
               var heatMap = svg.selectAll(".hit")
                   .data(sum_1)
                   .enter().append("rect")
                   .attr("x", function(d, i) {
                     var len = 0;
                     for (var t = 0; t < (i%18); ++t) {
-                      len += scale_1[demap(t)]*squareWidth;
+                      len += scale_1[demap_1(t)]*squareWidth;
                     }
                     return len; 
                   })
                   .attr("y", function(d, i) {
                     var len = 0;
                     for (var t = 0; t < (Math.floor(i/18)); ++t) {
-                      len += scale_1[demap(t)]*squareWidth;
+                      len += scale_1[demap_1(t)]*squareWidth;
                     } 
                     return len; 
                   })
                   .attr("rx", 4)
                   .attr("ry", 4)
                   .attr("class", "hour bordered")
-                  .attr("width", function(d, i) {return scale_1[demap(i%18)]*squareWidth; })
-                  .attr("height", function(d, i) {return scale_1[demap(Math.floor(i/18))]*squareWidth; })
+                  .attr("width", function(d, i) {return scale_1[demap_1(i%18)]*squareWidth; })
+                  .attr("height", function(d, i) {return scale_1[demap_1(Math.floor(i/18))]*squareWidth; })
                   .style("fill", colors[0]);
               heatMap.transition().duration(1000)
                   .style("fill", function(d, i) {
@@ -301,15 +360,15 @@
                     .data(matchs)
                     .enter().append("text")
                       .text(function (d, i) {
-                       return matchs[i]; 
+                       return majors[demap_2(i)]; 
                      })
                       .attr("x", 0)
                       .attr("y", function(d, i) {
                         var len = 5;
                         for (var t = 0; t < (Math.floor(i%18)); ++t) {
-                          len += scale_2[demap(t)]*squareWidth;
+                          len += scale_2[demap_2(t)]*squareWidth;
                         } 
-                        len += 0.5 * scale_2[demap(t)]*squareWidth;
+                        len += 0.5 * scale_2[demap_2(t)]*squareWidth;
                         if(i == 0) len += 7;
                         if(i == 13) len -= 3;
                         return (len-10); 
@@ -318,28 +377,85 @@
                       .style("font-size","15px")
                       .attr("transform", "translate(-7," + gridSize / 1.5 + ")")
                       .attr("class", function (d, i) { return ((i >= 0 && i <= 17) ? "matchLabel mono axis axis-workweek" : "matchLabel mono axis"); });
+              var majorLabels_1 = svg.selectAll(".majorLabel")
+                  .data(matchs)
+                  .enter().append("text")
+                    .text(function (d, i) {
+                       return majors[demap_2(i)][0]; 
+                     })
+                    .attr("x", function(d, i) {
+                      var len = 0;
+                      for (var t = 0; t < (Math.floor(i%18)); ++t) {
+                        len += scale_2[demap_2(t)]*squareWidth;
+                      } 
+                      len += 0.5 * scale_2[demap_2(t)]*squareWidth;
+                      return (len-10); 
+                    })
+                    .attr("y", height - 55)
+                    .style("text-anchor", "middle")
+                    .style("font-size","15px")
+                    .attr("transform", "translate(" + gridSize / 1.5 + ", -6)")
+                    .attr("class", function(d, i) { return ((i >= 0 && i <= 17) ? "timeLabel mono axis axis-worktime" : "timeLabel mono axis"); }); 
+              var majorLabels_2 = svg.selectAll(".majorLabel")
+                  .data(matchs)
+                  .enter().append("text")
+                    .text(function (d, i) {
+                       return majors[demap_2(i)][1]; 
+                     })
+                    .attr("x", function(d, i) {
+                      var len = rowPadding;
+                      for (var t = 0; t < (Math.floor(i%18)); ++t) {
+                        len += scale_2[demap_2(t)]*squareWidth;
+                      } 
+                      len += 0.5 * scale_2[demap_2(t)]*squareWidth;
+                      return (len-10); 
+                    })
+                    .attr("y", height - 55 + linePadding)
+                    .style("text-anchor", "middle")
+                    .style("font-size","15px")
+                    .attr("transform", "translate(" + gridSize / 1.5 + ", -6)")
+                    .attr("class", function(d, i) { return ((i >= 0 && i <= 17) ? "timeLabel mono axis axis-worktime" : "timeLabel mono axis"); }); 
+              var majorLabels_3 = svg.selectAll(".majorLabel")
+                  .data(matchs)
+                  .enter().append("text")
+                    .text(function (d, i) {
+                       return majors[demap_2(i)][2]; 
+                     })
+                    .attr("x", function(d, i) {
+                      var len = rowPadding * 2;
+                      for (var t = 0; t < (Math.floor(i%18)); ++t) {
+                        len += scale_2[demap_2(t)]*squareWidth;
+                      } 
+                      len += 0.5 * scale_2[demap_2(t)]*squareWidth;
+                      return (len-10); 
+                    })
+                    .attr("y", height - 55 + linePadding * 2)
+                    .style("text-anchor", "middle")
+                    .style("font-size","15px")
+                    .attr("transform", "translate(" + gridSize / 1.5 + ", -6)")
+                    .attr("class", function(d, i) { return ((i >= 0 && i <= 17) ? "timeLabel mono axis axis-worktime" : "timeLabel mono axis"); }); 
                 var heatMap = svg.selectAll(".hit")
                     .data(sum_2)
                     .enter().append("rect")
                     .attr("x", function(d, i) {
                       var len = 0;
                       for (var t = 0; t < (i%18); ++t) {
-                        len += scale_2[demap(t)]*squareWidth;
+                        len += scale_2[demap_2(t)]*squareWidth;
                       }
                       return len; 
                     })
                     .attr("y", function(d, i) {
                       var len = 0;
                       for (var t = 0; t < (Math.floor(i/18)); ++t) {
-                        len += scale_2[demap(t)]*squareWidth;
+                        len += scale_2[demap_2(t)]*squareWidth;
                       } 
                       return len; 
                     })
                     .attr("rx", 4)
                     .attr("ry", 4)
                     .attr("class", "hour bordered")
-                    .attr("width", function(d, i) {return scale_2[demap(i%18)]*squareWidth; })
-                    .attr("height", function(d, i) {return scale_2[demap(Math.floor(i/18))]*squareWidth; })
+                    .attr("width", function(d, i) {return scale_2[demap_2(i%18)]*squareWidth; })
+                    .attr("height", function(d, i) {return scale_2[demap_2(Math.floor(i/18))]*squareWidth; })
                     .style("fill", colors[0]);
                 heatMap.transition().duration(1000)
                     .style("fill", function(d, i) { 
@@ -358,7 +474,7 @@
                   .attr("class", "mono")
                   .text(function(d) { return d; })
                   .attr("x", function(d, i) { return 520 * Math.floor(i/6); })
-                  .attr("y", function(d, i) { console.log(i); return height + 30 * (i % 6); })
+                  .attr("y", function(d, i) { return height + 25 + 30 * (i % 6); })
                   .style("fill", "black")
                   .style("font-size", "15px");
 
@@ -369,7 +485,7 @@
                   .attr("class", "mono")
                   .text(function(d) { return d; })
                   .attr("x", function(d, i) { return 510 * Math.floor(i/6) + 100; })
-                  .attr("y", function(d, i) { return height + 30 * (i % 6); })
+                  .attr("y", function(d, i) { return height + 25 + 30 * (i % 6); })
                   .style("font-size", "15px");
           });
           d3.csv("student.csv", function(d) {
@@ -390,46 +506,94 @@
                       .attr("y", function(d, i) {
                         var len = 0;
                         for (var t = 0; t < (Math.floor(i%18)); ++t) {
-                          len += scale_3[demap(t)]*squareWidth;
+                          len += scale_3[demap_3(t)]*squareWidth;
                         } 
-                        len += 0.5 * scale_3[demap(t)]*squareWidth;
+                        len += 0.5 * scale_3[demap_3(t)]*squareWidth;
                         return (len-10); 
                       })
                       .style("text-anchor", "end")
                       .style("font-size","15px")
                       .attr("transform", "translate(-6," + gridSize / 1.5 + ")")
                       .attr("class", function (d, i) { return ((i >= 0 && i <= 17) ? "matchLabel mono axis axis-workweek" : "matchLabel mono axis"); });
-                // var majorLabels = svg.selectAll(".majorLabel")
-                //     .data(majors)
-                //     .enter().append("text")
-                //       .text(function(d) { return d; })
-                //       .attr("x", function(d, i) { return i * gridSize; })
-                //       .attr("y", 0)
-                //       .style("text-anchor", "middle")
-                //       .attr("transform", "translate(" + gridSize / 2 + ", -6)")
-                //       .attr("class", function(d, i) { return ((i >= 0 && i <= 17) ? "timeLabel mono axis axis-worktime" : "timeLabel mono axis"); });
+              var majorLabels_1 = svg.selectAll(".majorLabel")
+                  .data(matchs)
+                  .enter().append("text")
+                    .text(function (d, i) {
+                       return majors[demap_2(i)][0]; 
+                     })
+                    .attr("x", function(d, i) {
+                      var len = 0;
+                      for (var t = 0; t < (Math.floor(i%18)); ++t) {
+                        len += scale_3[demap_3(t)]*squareWidth;
+                      } 
+                      len += 0.5 * scale_3[demap_3(t)]*squareWidth;
+                      return (len-10); 
+                    })
+                    .attr("y", height - 55)
+                    .style("text-anchor", "middle")
+                    .style("font-size","15px")
+                    .attr("transform", "translate(" + gridSize / 1.5 + ", -6)")
+                    .attr("class", function(d, i) { return ((i >= 0 && i <= 17) ? "timeLabel mono axis axis-worktime" : "timeLabel mono axis"); }); 
+              var majorLabels_2 = svg.selectAll(".majorLabel")
+                  .data(matchs)
+                  .enter().append("text")
+                    .text(function (d, i) {
+                       return majors[demap_2(i)][1]; 
+                     })
+                    .attr("x", function(d, i) {
+                      var len = rowPadding;
+                      for (var t = 0; t < (Math.floor(i%18)); ++t) {
+                        len += scale_3[demap_3(t)]*squareWidth;
+                      } 
+                      len += 0.5 * scale_3[demap_3(t)]*squareWidth;
+                      return (len-10); 
+                    })
+                    .attr("y", height - 55 + linePadding)
+                    .style("text-anchor", "middle")
+                    .style("font-size","15px")
+                    .attr("transform", "translate(" + gridSize / 1.5 + ", -6)")
+                    .attr("class", function(d, i) { return ((i >= 0 && i <= 17) ? "timeLabel mono axis axis-worktime" : "timeLabel mono axis"); }); 
+              var majorLabels_3 = svg.selectAll(".majorLabel")
+                  .data(matchs)
+                  .enter().append("text")
+                    .text(function (d, i) {
+                       return majors[demap_2(i)][2]; 
+                     })
+                    .attr("x", function(d, i) {
+                      var len = rowPadding * 2;
+                      for (var t = 0; t < (Math.floor(i%18)); ++t) {
+                        len += scale_3[demap_3(t)]*squareWidth;
+                      } 
+                      len += 0.5 * scale_3[demap_3(t)]*squareWidth;
+                      return (len-10); 
+                    })
+                    .attr("y", height - 55 + linePadding * 2)
+                    .style("text-anchor", "middle")
+                    .style("font-size","15px")
+                    .attr("transform", "translate(" + gridSize / 1.5 + ", -6)")
+                    .attr("class", function(d, i) { return ((i >= 0 && i <= 17) ? "timeLabel mono axis axis-worktime" : "timeLabel mono axis"); }); 
                 var heatMap = svg.selectAll(".hit")
                     .data(sum_3)
                     .enter().append("rect")
                     .attr("x", function(d, i) {
                       var len = 0;
                       for (var t = 0; t < (i%18); ++t) {
-                        len += scale_3[demap(t)]*squareWidth;
+                        len += scale_3[demap_3(t)]*squareWidth;
                       }
                       return len; 
                     })
                     .attr("y", function(d, i) {
                       var len = 0;
                       for (var t = 0; t < (Math.floor(i/18)); ++t) {
-                        len += scale_3[demap(t)]*squareWidth;
+                        len += scale_3[demap_3(t)]*squareWidth;
                       } 
                       return len; 
                     })
                     .attr("rx", 4)
                     .attr("ry", 4)
                     .attr("class", "hour bordered")
-                    .attr("width", function(d, i) {return scale_3[demap(i%18)]*squareWidth; })
-                    .attr("height", function(d, i) {return scale_3[demap(Math.floor(i/18))]*squareWidth; })
+                    .attr("width", function(d, i) {return scale_3[demap_3(i%18)]*squareWidth; })
+                    .attr("height", function(d, i) {return scale_3[demap_3(Math.floor(i/18))]*squareWidth; })
                     .style("fill", colors[0]);
                 heatMap.transition().duration(1000)
                     .style("fill", function(d, i) { 
@@ -440,25 +604,8 @@
                       return colors[range.length - 1]; 
                     });
                 heatMap.append("title").text(function(d, i) { return d/number_3[Math.floor(i/18)]; });
-
-                // var legend = svg.selectAll(".legend")
-                //     .data(range)
-                //     .enter().append("g")
-                //     .attr("class", "legend");
-                // legend.append("rect")
-                //   .attr("x", function(d, i) { return legendElementWidth * i; })
-                //   .attr("y", height + 10)
-                //   .attr("width", legendElementWidth)
-                //   .attr("height", gridSize / 2)
-                //   .style("fill", function(d, i) { return colors[i]; });
-                // legend.append("text")
-                //   .attr("class", "mono")
-                //   .text(function(d) { return "≥ " + d; })
-                //   .attr("x", function(d, i) { return legendElementWidth * i; })
-                //   .attr("y", height + gridSize + 10);
-              
           });
-          function major2index(major) {
+          function major2index_1(major) {
             var num = 0;
             if(major == "Agric. & Nat. Res. Cons") num = 8;
             if(major == "Architecture") num = 17;
@@ -478,6 +625,50 @@
             if(major == "Repair, Production, & Construction") num = 7;
             if(major == "Sciences: Biological & Physical") num = 14;
             if(major == "Social Sciences & Law") num = 9;
+            return num;
+          }
+          function major2index_2(major) {
+            var num = 0;
+            if(major == "Agric. & Nat. Res. Cons") num = 8;
+            if(major == "Architecture") num = 17;
+            if(major == "Area, Eth. & Multidiscip. Studies") num = 13;
+            if(major == "Arts: Visual & Performing") num = 6;
+            if(major == "Business") num = 0;
+            if(major == "Commun, Fam., & Personal Svcs") num = 2;
+            if(major == "Communications") num = 10;
+            if(major == "Comp. Sci. & Mathematics") num = 5;
+            if(major == "Education") num = 1;
+            if(major == "Eng. Tech. & Drafting") num = 14;
+            if(major == "Engineering") num = 15;
+            if(major == "English & Foreign Lang.") num = 11;
+            if(major == "Health Admin. & Assisting") num = 4;
+            if(major == "Health Sci. & Techno.") num = 3;
+            if(major == "Philosophy, Religion, & Theology") num = 16;
+            if(major == "Repair, Production, & Construction") num = 9;
+            if(major == "Sciences: Biological & Physical") num = 12;
+            if(major == "Social Sciences & Law") num = 7;
+            return num;
+          }
+          function major2index_3(major) {
+            var num = 0;
+            if(major == "Agric. & Nat. Res. Cons") num = 8;
+            if(major == "Architecture") num = 17;
+            if(major == "Area, Eth. & Multidiscip. Studies") num = 13;
+            if(major == "Arts: Visual & Performing") num = 6;
+            if(major == "Business") num = 0;
+            if(major == "Commun, Fam., & Personal Svcs") num = 2;
+            if(major == "Communications") num = 12;
+            if(major == "Comp. Sci. & Mathematics") num = 5;
+            if(major == "Education") num = 1;
+            if(major == "Eng. Tech. & Drafting") num = 14;
+            if(major == "Engineering") num = 15;
+            if(major == "English & Foreign Lang.") num = 11;
+            if(major == "Health Admin. & Assisting") num = 4;
+            if(major == "Health Sci. & Techno.") num = 3;
+            if(major == "Philosophy, Religion, & Theology") num = 16;
+            if(major == "Repair, Production, & Construction") num = 9;
+            if(major == "Sciences: Biological & Physical") num = 10;
+            if(major == "Social Sciences & Law") num = 7;
             return num;
           }
 
@@ -532,10 +723,10 @@
            
           graph.links.forEach(function(link, i){
             if(id == "#chart4") {
-              link.dy = link.value*scale_1[demap(major2index(link.source.name))]*squareWidth;
+              link.dy = link.value*scale_1[demap_1(major2index_1(link.source.name))]*squareWidth;
             }
             else
-              link.dy = link.value*scale_2[demap(major2index(link.source.name))]*squareWidth;
+              link.dy = link.value*scale_2[demap_2(major2index_1(link.source.name))]*squareWidth;
           });
 
           graph.nodes.forEach(function(node, i) {
@@ -543,14 +734,14 @@
               var len = 0;
               if(i<18) {
                 for (var t = 0; t < i; ++t) {
-                  if(id == "#chart4") len += scale_1[demap(t)]*squareWidth;
-                  else len += scale_2[demap(t)]*squareWidth;
+                  if(id == "#chart4") len += scale_1[demap_1(t)]*squareWidth;
+                  else len += scale_2[demap_2(t)]*squareWidth;
                 }
               }
               else {
                 for (var t = 0; t < i%18; ++t) {
-                  if(id == "#chart4") len += scale_2[demap(t)]*squareWidth;
-                  else len += scale_3[demap(t)]*squareWidth;
+                  if(id == "#chart4") len += scale_2[demap_2(t)]*squareWidth;
+                  else len += scale_3[demap_3(t)]*squareWidth;
                 }
               }
               node.y = len;
@@ -594,26 +785,24 @@
               .attr("height", function(d, i) { 
                 if(i < 18) {
                   if(id == "#chart4") {
-                    return scale_1[demap(i)]*squareWidth; }
+                    return scale_1[demap_1(i)]*squareWidth; }
                   else {
-                      return scale_2[demap(i)]*squareWidth; }
+                      return scale_2[demap_2(i)]*squareWidth; }
                 }
                 else {
                   i -= 18;
                   if(id == "#chart4") {
-                    return scale_2[demap(i)]*squareWidth; }
+                    return scale_2[demap_2(i)]*squareWidth; }
                   else {
-                    return scale_3[demap(i)]*squareWidth; }
+                    return scale_3[demap_3(i)]*squareWidth; }
                 }
               })
               .attr("width", sankey.nodeWidth())
               .style("fill", "#fff")
-              .style("stroke", "#fff")
+              .style("stroke", "#000")
             .append("title")
               .text(function(d) { 
               return d.name + "\n" + format(d.value); });
-
-          console.log(graph.links);
 
           // the function for moving the nodes
           function dragmove(d) {
@@ -628,32 +817,8 @@
           }
         });
       }
-      function map(num) {
-        var index = 0;
-        switch(num)
-        {
-          case 0: index = 8; break;
-          case 1: index = 17; break;
-          case 2: index = 13; break;
-          case 3: index = 6; break;
-          case 4: index = 0; break;
-          case 5: index = 2; break;
-          case 6: index = 10; break;
-          case 7: index = 4; break;
-          case 8: index = 1; break;
-          case 9: index = 12; break;
-          case 10: index = 15; break;
-          case 11: index = 11; break;
-          case 12: index = 5; break;
-          case 13: index = 3; break;
-          case 14: index = 16; break;
-          case 15: index = 7; break;
-          case 16: index = 14; break;
-          case 17: index = 9; break; 
-        }
-        return index;
-      }
-      function demap(num) {
+
+      function demap_1(num) {
         var index = 0;
         switch(num)
         {
@@ -675,6 +840,56 @@
           case 7: index = 15; break;
           case 14: index = 16; break;
           case 9: index = 17; break; 
+        }
+        return index;
+      }
+      function demap_2(num) {
+        var index = 0;
+        switch(num)
+        {
+          case 8: index = 0; break;
+          case 17: index = 1; break;
+          case 13: index = 2; break;
+          case 6: index = 3; break;
+          case 0: index = 4; break;
+          case 2: index = 5; break;
+          case 10: index = 6; break;
+          case 4: index = 12; break;
+          case 1: index = 8; break;
+          case 12: index = 16; break;
+          case 15: index = 10; break;
+          case 11: index = 11; break;
+          case 5: index = 7; break;
+          case 3: index = 13; break;
+          case 16: index = 14; break;
+          case 7: index = 17; break;
+          case 14: index = 9; break;
+          case 9: index = 15; break; 
+        }
+        return index;
+      }
+      function demap_3(num) {
+        var index = 0;
+        switch(num)
+        {
+          case 8: index = 0; break;
+          case 17: index = 1; break;
+          case 13: index = 2; break;
+          case 6: index = 3; break;
+          case 0: index = 4; break;
+          case 2: index = 5; break;
+          case 12: index = 6; break;
+          case 5: index = 7; break;
+          case 1: index = 8; break;
+          case 14: index = 9; break;
+          case 4: index = 10; break;
+          case 11: index = 11; break;
+          case 15: index = 12; break;
+          case 3: index = 13; break;
+          case 16: index = 14; break;
+          case 9: index = 15; break;
+          case 10: index = 16; break;
+          case 7: index = 17; break; 
         }
         return index;
       }
