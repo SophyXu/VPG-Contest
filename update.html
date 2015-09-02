@@ -1,959 +1,926 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
-<html>
-  <head>
-    <style>
-      rect.bordered {
-        stroke: #E6E6E6;
-        stroke-width:2px;   
-      }
-      text.mono {
-        font-size: 9pt;
-        font-family: Consolas, courier;
-        fill: #aaa;
-      }
-      text.axis-workweek {
-        fill: #000;
-      }
-      text.axis-worktime {
-        fill: #000;
-      } 
-      .node rect {
-        cursor: move;
-        fill-opacity: .9;
-        shape-rendering: crispEdges;
-      }       
-      .node text {
-        pointer-events: none;
-        text-shadow: 0 1px 0 #fff;
-      }      
-      .link {
-        fill: none;
-        stroke: #000;
-        stroke-opacity: .5;
-      }      
-      .link:hover {
-        stroke-opacity: .8;
-      }
-      div.barClass{
-        border: 0px solid #000;
-        width: 900px; 
-        height: 70px;  
-        margin-left: 51px;   
-        float: left;  
-      }
-      div.small{
-        border: 0px solid #000;
-        width: 720px;
-        height: 760px;
-        float: left;
-      }
-      div.sankey{
-        border: 0px solid #000;
-        width: 180px;
-        height: 760px;
-        float: left;
-      }
-    </style>
-    <script src="http://d3js.org/d3.v3.js"></script>
-    <script src="sankey.js"></script>
-  </head>
-  <body>
-    <div >
-      <div class="barClass" id="barChart0"></div>
-      <div class="barClass" style="margin-left:0px" id="barChart1"></div>
-      <div class="barClass" style="margin-left:0px; width:670px" id="barChart2"></div>
-      <div class="barClass" id="barChart3"></div>
-      <div class="barClass" style="margin-left:0px" id="barChart4"></div>
-      <div class="barClass" style="margin-left:0px; width:670px" id="barChart5"></div>
-      <div class="small" id="chart1"></div>
-      <div class="sankey" id="chart4"></div>
-      <div class="small" id="chart2"></div>
-      <div class="sankey" id="chart5"></div>
-      <div class="small" id="chart3"></div>
-    </div>
-
-    <script type="text/javascript">
-      var margin = { top: 0, right: 0, bottom: 100, left: 50 },
-          width = 750 - margin.left - margin.right,
-          height = 900 - margin.top - margin.bottom,
-          gridSize = Math.floor(width / 36),
-          legendElementWidth = gridSize*5.05,
-          buckets = 7,
-          colors = ["#ffffd9","#c7e9b4","#7fcdbb","#41b6c4","#1d91c0","#225ea8","#081d58"],
-          // colors = ["#ffffd9","#edf8b1","#c7e9b4","#7fcdbb","#41b6c4","#1d91c0","#225ea8","#253494","#081d58"],
-          majors = ["A&N", "ARC", "A&M", "ART", "BUS", "C&P", "COM", "C&M", "EDU", "E&D", "ENG", "E&F", "H&A", "H&T", "P&T", "R&C", "SCI", "S&L"],
-          majorss = ["Agric. & Nat. Res. Cons","Architecture","Area, Eth. & Multidiscip. Studies","Arts: Visual & Performing","Business","Commun, Fam., & Personal Svcs","Communications","Comp. Sci. & Mathematics","Education","Eng. Tech. & Drafting","Engineering","English & Foreign Lang.","Health Admin. & Assisting","Health Sci. & Techno.","Philosophy, Religion, & Theology","Repair, Production, & Construction","Sciences: Biological & Physical", "Social Sciences & Law"],
-          matchs = ["BUS", "EDU", "C&P", "H&T", "C&M", "H&A", "ART", "R&C", "A&N", "S&L", "COM", "E&F", "E&D", "A&M", "SCI", "ENG", "P&T", "ARC"],
-          matchess = ["Business", "Education", "Commun, Fam., & Personal Svcs", "Health Sci. & Techno.", "Comp. Sci. & Mathematics", "Health Admin. & Assisting", "Art", "Repair, Production, & Construction", "Agr", "Social Sciences & Law", "Communications", "English & Foreign Lang.", "Eng. Tech. & Drafting", "Are", "Sciences: Biological & Physical", "Engineering", "Philosophy, Religion, & Theology", "Arc"],
-          range = [0, 0.05, 0.1, 0.15, 0.25, 0.35, 0.4];
-
-          var squareWidth = 669;
-          var linePadding = 12;
-          var rowPadding = 14;
-
-          var scale_1 = [0.0440, 0.0396, 0.0134, 0.0697, 0.0833, 0.0443, 0.0513, 0.0524, 0.0663, 0.0402, 0.0840, 0.0403, 0.0500, 0.1076, 0.0265, 0.0307, 0.0786, 0.0778];
-          var scale_2 = [0.0487, 0.0278, 0.0150, 0.0642, 0.0884, 0.0698, 0.0537, 0.0542, 0.0648, 0.0407, 0.0830, 0.0436, 0.0335, 0.0835, 0.0256, 0.0373, 0.0907, 0.0753];
-          var scale_3 = [0.0489, 0.0273, 0.0156, 0.0631, 0.0902, 0.0729, 0.0561, 0.0553, 0.0654, 0.0406, 0.0794, 0.0448, 0.0346, 0.0799, 0.0261, 0.0380, 0.0855, 0.0762];
-
-          // number of people for a major
-          var number_1 = new Array();
-          var number_2 = new Array();
-          var number_3 = new Array();
-
-          // 2-d array
-          var male_number = new Array();
-          var four_year_type = new Array();
-          var array_1 = new Array();
-          var array_2 = new Array();
-          var array_3 = new Array();
-          var sum_1 = new Array();
-          var sum_2 = new Array();
-          var sum_3 = new Array();
-
-          var SUM = 0;
-
-          var max_1 = 0;
-          var max_2 = 0;
-          var max_3 = 0;
-
-          // temp
-          var transfer_12 = new Array();
-          var transfer_23 = new Array();
-
-          for(var i = 0; i < 18; ++i){
-            male_number[i] = new Array();
-            four_year_type[i] = new Array();
-            array_1[i] = new Array();
-            array_2[i] = new Array();
-            array_3[i] = new Array();
-            number_1[i] = 0;
-            number_2[i] = 0;
-            number_3[i] = 0;
-
-            // temp
-            transfer_12[i] = new Array();
-            transfer_23[i] = new Array();
-
-            for(var j = 0; j < 18; ++j){
-              male_number[i][j] = 0;
-              four_year_type[i][j] = 0;
-              array_1[i][j] = 0;
-              array_2[i][j] = 0;
-              array_3[i][j] = 0;
-
-              // temp
-              transfer_12[i][j] = 0;
-              transfer_23[i][j] = 0;
+    <html>
+        <head>
+            <style>
+                rect.bordered {
+                    stroke: #E6E6E6;
+                    stroke-width:2px;
+                }
+            text.mono {
+                font-size: 9pt;
+                font-family: Consolas, courier;
+                font-weight: bold;
+                fill: #aaa;
             }
-          }
-
-          d3.csv("student.csv", function(d) {
-              var i = major2index_1(d.T1_Level2);
-              var j = major2index_1(d.HighestLevel2);
-              var ii = major2index_1(d.T2_Level2);
-              var iii = major2index_1(d.T3_Level2);
-
-              transfer_12[i][ii] += d.count/1;
-              transfer_23[ii][iii] += d.count/1;
-              
-              array_1[i][j] += d.count/1;
-              number_1[i] += d.count/1;
-              if(d.Gender == "Male") male_number[0][i] += d.count/1;
-              if(d.YR1 == "4-year") four_year_type[0][i] += d.count/1;
-
-              i = major2index_2(d.T2_Level2);
-              j = major2index_2(d.HighestLevel2);
-              array_2[i][j] += d.count/1;
-              number_2[i] += d.count/1;
-              if(d.Gender == "Male") male_number[1][i] += d.count/1;
-              if(d.YR2 == "4-year") four_year_type[1][i] += d.count/1;
-
-              i = major2index_3(d.T3_Level2);
-              j = major2index_3(d.HighestLevel2);
-              array_3[i][j] += d.count/1;             
-              number_3[i] += d.count/1; 
-              if(d.Gender == "Male") male_number[2][i] += d.count/1;
-
-              SUM += d.count/1;
-
-              return {
-              };
-            },
-            function(error, data) {
-              console.log(four_year_type[0]);
-              for(var i = 0; i < 18; ++i)
-                for(var j = 0; j < 18; ++j) {
-                  transfer_12[i][j] = transfer_12[i][j] / number_1[i];
-                  transfer_23[i][j] = transfer_23[i][j] / number_2[i];
-                }
-
-              for(var j = 0; j < 18; ++j) {
-                var sum = 0;
-                for(var i = 0; i < 18; ++i) {
-                  sum += array_2[i][j] / number_2[i];
-                }
-              }
-              for(var j = 0; j < 18; ++j) {
-                var sum = 0;
-                for(var i = 0; i < 18; ++i) {
-                  sum += array_1[i][j] / number_1[i];
-                }
-              }
-              // for(var i = 0; i < 18; ++i)
-              //   for(var j = 0; j < 18; ++j) {
-              //     if(transfer_23[i][j] > 0 && i != j)
-              //     console.log("{\"source\":\"" + majorss[map_1(i)] + "\",\"target\":\"" + majorss[map_1(j)] + "*\",\"value\":\"" + transfer_23[i][j] + "\"},");
-              //   }   
-
-              // console.log(majorss[3]);
-              // console.log(majorss[3]);
-              // console.log(transfer_12[3][3]);
-
-              for(var i = 0; i < 18; ++i)
-                for(var j = 0; j < 18; ++j) {
-                  sum_1[i*18+j] = array_1[i][j];
-
-                  sum_2[i*18+j] = array_2[i][j];
-
-                  if(array_3[i][j] > max_3)
-                    max_3 = array_3[i][j];
-                  sum_3[i*18+j] = array_3[i][j];
-                }
-
-              for(var i = 0; i < 3; ++i) {
-                for(var j = 0; j < 18; ++j) {
-                  var dataset = new Array();
-                  switch(i) {
-                  case 0 :
-                    dataset[0] = scale_1[map_1(j)] * squareWidth * male_number[i][j]/number_1[j];
-                    dataset[1] = scale_1[map_1(j)] * squareWidth * (1 - male_number[i][j]/number_1[j]);
-                    barGraph(scale_1[map_1(j)] * squareWidth, 40, dataset, "#barChart" + i, i);
-                    dataset[0] = scale_1[map_1(j)] * squareWidth * four_year_type[i][j]/number_1[j];
-                    dataset[1] = scale_1[map_1(j)] * squareWidth * (1 - four_year_type[i][j]/number_1[j]);
-                    barGraph(scale_1[map_1(j)] * squareWidth, 30, dataset, "#barChart" + (i+3), i+3);
-                    break;
-                  case 1 :
-                    dataset[0] = scale_2[map_2(j)] * squareWidth * male_number[i][j]/number_2[j];
-                    dataset[1] = scale_2[map_2(j)] * squareWidth * (1 - male_number[i][j]/number_2[j]);
-                    barGraph(scale_2[map_2(j)] * squareWidth, 40, dataset, "#barChart" + i, i);
-                    dataset[0] = scale_2[map_2(j)] * squareWidth * four_year_type[i][j]/number_2[j];
-                    dataset[1] = scale_2[map_2(j)] * squareWidth * (1 - four_year_type[i][j]/number_2[j]);
-                    barGraph(scale_2[map_2(j)] * squareWidth, 30, dataset, "#barChart" + (i+3), i+3);
-                    break;
-                  case 2 :
-                    dataset[0] = scale_3[map_3(j)] * squareWidth * male_number[i][j]/number_3[j];
-                    dataset[1] = scale_3[map_3(j)] * squareWidth * (1 - male_number[i][j]/number_3[j]);
-                    barGraph(scale_3[map_3(j)] * squareWidth, 40, dataset, "#barChart" + i, i);
-                    break;
-                  }
-                }
-              }
-
-              var svg = d3.select("#chart1").append("svg")
-                  .attr("width", width + margin.left + margin.right)
-                  .attr("height", height + margin.top + margin.bottom)
-                  .append("g")
-                  .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-              var matchLabels = svg.selectAll(".matchLabel")
-                  .data(matchs)
-                  .enter().append("text")
-                    .text(function (d, i) { return matchs[i]; })
-                    .attr("x", 0)
-                    .attr("y", function(d, i) {
-                      var len = 0; 
-                      for (var t = 0; t < (Math.floor(i%18)); ++t) {
-                        len += scale_1[map_1(t)]*squareWidth;
-                      } 
-                      len += 0.5 * scale_1[map_1(t)]*squareWidth;
-                      return (len-10); 
-                    })
-                    .style("text-anchor", "end")
-                    .style("font-size","15px")
-                    .attr("transform", "translate(-6," + gridSize / 1.5 + ")")
-                    .attr("class", function (d, i) { return ((i >= 0 && i <= 17) ? "matchLabel mono axis axis-workweek" : "matchLabel mono axis"); });
-
-              var majorLabels_1 = svg.selectAll(".majorLabel")
-                  .data(matchs)
-                  .enter().append("text")
-                    .text(function(d) { return d[0]; })
-                    .attr("x", function(d, i) {
-                      var len = 0;
-                      for (var t = 0; t < (Math.floor(i%18)); ++t) {
-                        len += scale_1[map_1(t)]*squareWidth;
-                      } 
-                      len += 0.5 * scale_1[map_1(t)]*squareWidth;
-                      return (len-10); 
-                    })
-                    .attr("y", squareWidth + 25)
-                    .style("text-anchor", "middle")
-                    .style("font-size","15px")
-                    .attr("transform", "translate(" + gridSize / 1.5 + ", -6)")
-                    .attr("class", function(d, i) { return ((i >= 0 && i <= 17) ? "timeLabel mono axis axis-worktime" : "timeLabel mono axis"); }); 
-              var majorLabels_2 = svg.selectAll(".majorLabel")
-                  .data(matchs)
-                  .enter().append("text")
-                    .text(function(d) { return d[1]; })
-                    .attr("x", function(d, i) {
-                      var len = rowPadding;
-                      for (var t = 0; t < (Math.floor(i%18)); ++t) {
-                        len += scale_1[map_1(t)]*squareWidth;
-                      } 
-                      len += 0.5 * scale_1[map_1(t)]*squareWidth;
-                      return (len-10); 
-                    })
-                    .attr("y", squareWidth + 25 + linePadding)
-                    .style("text-anchor", "middle")
-                    .style("font-size","15px")
-                    .attr("transform", "translate(" + gridSize / 1.5 + ", -6)")
-                    .attr("class", function(d, i) { return ((i >= 0 && i <= 17) ? "timeLabel mono axis axis-worktime" : "timeLabel mono axis"); }); 
-              var majorLabels_3 = svg.selectAll(".majorLabel")
-                  .data(matchs)
-                  .enter().append("text")
-                    .text(function(d) { return d[2]; })
-                    .attr("x", function(d, i) {
-                      var len = rowPadding * 2;
-                      for (var t = 0; t < (Math.floor(i%18)); ++t) {
-                        len += scale_1[map_1(t)]*squareWidth;
-                      } 
-                      len += 0.5 * scale_1[map_1(t)]*squareWidth;
-                      return (len-10); 
-                    })
-                    .attr("y", squareWidth + 25 + linePadding * 2)
-                    .style("text-anchor", "middle")
-                    .style("font-size","15px")
-                    .attr("transform", "translate(" + gridSize / 1.5 + ", -6)")
-                    .attr("class", function(d, i) { return ((i >= 0 && i <= 17) ? "timeLabel mono axis axis-worktime" : "timeLabel mono axis"); }); 
-
-              var heatMap = svg.selectAll(".hit")
-                  .data(sum_1)
-                  .enter().append("rect")
-                  .attr("x", function(d, i) {
-                    var len = 0;
-                    for (var t = 0; t < (i%18); ++t) {
-                      len += scale_1[map_1(t)]*squareWidth;
-                    }
-                    return len; 
-                  })
-                  .attr("y", function(d, i) {
-                    var len = 0;
-                    for (var t = 0; t < (Math.floor(i/18)); ++t) {
-                      len += scale_1[map_1(t)]*squareWidth;
-                    } 
-                    return len; 
-                  })
-                  .attr("rx", 4)
-                  .attr("ry", 4)
-                  .attr("class", "hour bordered")
-                  .attr("width", function(d, i) {return scale_1[map_1(i%18)]*squareWidth; })
-                  .attr("height", function(d, i) {return scale_1[map_1(Math.floor(i/18))]*squareWidth; })
-                  .style("fill", colors[0]);
-              heatMap.transition().duration(1000)
-                  .style("fill", function(d, i) {
-                  if(d/number_1[Math.floor(i/18)] == 0)
-                    return colors[0]; 
-                    for (var t = 1; t < range.length; ++t) {
-                      if(d/number_1[Math.floor(i/18)] <= range[t])
-                        return colors[t-1];
-                    }
-                    return colors[range.length - 1]; 
-                  });
-              heatMap.append("title").text(function(d, i) { return d/number_1[Math.floor(i/18)]; });
-
-              var legend = svg.selectAll(".legend")
-                  .data(range)
-                  .enter().append("g")
-                  .attr("class", "legend");
-              legend.append("rect")
-                .attr("x", function(d, i) { return legendElementWidth * i; })
-                .attr("y", height + 10)
-                .attr("width", legendElementWidth)
-                .attr("height", gridSize / 2)
-                .style("fill", function(d, i) { return colors[i]; });
-              legend.append("text")
-                .attr("class", "mono")
-                .text(function(d) { return "≥ " + d; })
-                .attr("x", function(d, i) { return legendElementWidth * i; })
-                .attr("y", height + gridSize + 15)
-                .style("font-size", "15px");
-              
-          });
-          d3.csv("student.csv", function(d) {
-              return {
-              };
-            },
-            function(error, data) {
-                var svg = d3.select("#chart2").append("svg")
-                    .attr("width", width*3 + margin.left + margin.right)
-                    .attr("height", height*2 + margin.top + margin.bottom)
-                    .append("g")
-                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-                var matchLabels = svg.selectAll(".matchLabel")
-                    .data(matchs)
-                    .enter().append("text")
-                      .text(function (d, i) {
-                       return majors[map_2(i)]; 
-                     })
-                      .attr("x", 0)
-                      .attr("y", function(d, i) {
-                        var len = 5;
-                        for (var t = 0; t < (Math.floor(i%18)); ++t) {
-                          len += scale_2[map_2(t)]*squareWidth;
-                        } 
-                        len += 0.5 * scale_2[map_2(t)]*squareWidth;
-                        if(i == 0) len += 7;
-                        if(i == 13) len -= 3;
-                        return (len-10); 
-                      })
-                      .style("text-anchor", "end")
-                      .style("font-size","15px")
-                      .attr("transform", "translate(-7," + gridSize / 1.5 + ")")
-                      .attr("class", function (d, i) { return ((i >= 0 && i <= 17) ? "matchLabel mono axis axis-workweek" : "matchLabel mono axis"); });
-              var majorLabels_1 = svg.selectAll(".majorLabel")
-                  .data(matchs)
-                  .enter().append("text")
-                    .text(function (d, i) {
-                       return majors[map_2(i)][0]; 
-                     })
-                    .attr("x", function(d, i) {
-                      var len = 0;
-                      for (var t = 0; t < (Math.floor(i%18)); ++t) {
-                        len += scale_2[map_2(t)]*squareWidth;
-                      } 
-                      len += 0.5 * scale_2[map_2(t)]*squareWidth;
-                      return (len-10); 
-                    })
-                    .attr("y", squareWidth + 25)
-                    .style("text-anchor", "middle")
-                    .style("font-size","15px")
-                    .attr("transform", "translate(" + gridSize / 1.5 + ", -6)")
-                    .attr("class", function(d, i) { return ((i >= 0 && i <= 17) ? "timeLabel mono axis axis-worktime" : "timeLabel mono axis"); }); 
-              var majorLabels_2 = svg.selectAll(".majorLabel")
-                  .data(matchs)
-                  .enter().append("text")
-                    .text(function (d, i) {
-                       return majors[map_2(i)][1]; 
-                     })
-                    .attr("x", function(d, i) {
-                      var len = rowPadding;
-                      for (var t = 0; t < (Math.floor(i%18)); ++t) {
-                        len += scale_2[map_2(t)]*squareWidth;
-                      } 
-                      len += 0.5 * scale_2[map_2(t)]*squareWidth;
-                      return (len-10); 
-                    })
-                    .attr("y", squareWidth + 25 + linePadding)
-                    .style("text-anchor", "middle")
-                    .style("font-size","15px")
-                    .attr("transform", "translate(" + gridSize / 1.5 + ", -6)")
-                    .attr("class", function(d, i) { return ((i >= 0 && i <= 17) ? "timeLabel mono axis axis-worktime" : "timeLabel mono axis"); }); 
-              var majorLabels_3 = svg.selectAll(".majorLabel")
-                  .data(matchs)
-                  .enter().append("text")
-                    .text(function (d, i) {
-                       return majors[map_2(i)][2]; 
-                     })
-                    .attr("x", function(d, i) {
-                      var len = rowPadding * 2;
-                      for (var t = 0; t < (Math.floor(i%18)); ++t) {
-                        len += scale_2[map_2(t)]*squareWidth;
-                      } 
-                      len += 0.5 * scale_2[map_2(t)]*squareWidth;
-                      return (len-10); 
-                    })
-                    .attr("y", squareWidth + 25 + linePadding * 2)
-                    .style("text-anchor", "middle")
-                    .style("font-size","15px")
-                    .attr("transform", "translate(" + gridSize / 1.5 + ", -6)")
-                    .attr("class", function(d, i) { return ((i >= 0 && i <= 17) ? "timeLabel mono axis axis-worktime" : "timeLabel mono axis"); }); 
-                var heatMap = svg.selectAll(".hit")
-                    .data(sum_2)
-                    .enter().append("rect")
-                    .attr("x", function(d, i) {
-                      var len = 0;
-                      for (var t = 0; t < (i%18); ++t) {
-                        len += scale_2[map_2(t)]*squareWidth;
-                      }
-                      return len; 
-                    })
-                    .attr("y", function(d, i) {
-                      var len = 0;
-                      for (var t = 0; t < (Math.floor(i/18)); ++t) {
-                        len += scale_2[map_2(t)]*squareWidth;
-                      } 
-                      return len; 
-                    })
-                    .attr("rx", 4)
-                    .attr("ry", 4)
-                    .attr("class", "hour bordered")
-                    .attr("width", function(d, i) {return scale_2[map_2(i%18)]*squareWidth; })
-                    .attr("height", function(d, i) {return scale_2[map_2(Math.floor(i/18))]*squareWidth; })
-                    .style("fill", colors[0]);
-                heatMap.transition().duration(1000)
-                    .style("fill", function(d, i) { 
-                      for (var t = 1; t < range.length; ++t) {
-                        if(d/number_2[Math.floor(i/18)] <= range[t])
-                          return colors[t-1];
-                      }
-                      return colors[range.length - 1]; 
-                    });
-                heatMap.append("title").text(function(d, i) { return d/number_2[Math.floor(i/18)]; });
-
-                var abbreviation = svg.selectAll(".legend")
-                    .data(majors)
-                    .enter().append("g");
-                abbreviation.append("text")
-                  .attr("class", "mono")
-                  .text(function(d) { return d; })
-                  .attr("x", function(d, i) { return 520 * Math.floor(i/6); })
-                  .attr("y", function(d, i) { return height + 25 + 30 * (i % 6); })
-                  .style("fill", "black")
-                  .style("font-size", "15px");
-
-                var name = svg.selectAll(".legend")
-                    .data(majorss)
-                    .enter().append("g");
-                name.append("text")
-                  .attr("class", "mono")
-                  .text(function(d) { return d; })
-                  .attr("x", function(d, i) { return 510 * Math.floor(i/6) + 100; })
-                  .attr("y", function(d, i) { return height + 25 + 30 * (i % 6); })
-                  .style("font-size", "15px");
-          });
-          d3.csv("student.csv", function(d) {
-              return {
-              };
-            },
-            function(error, data) {
-                var svg = d3.select("#chart3").append("svg")
-                    .attr("width", width + margin.left + margin.right)
-                    .attr("height", height + margin.top + margin.bottom)
-                    .append("g")
-                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-                var matchLabels = svg.selectAll(".matchLabel")
-                    .data(matchs)
-                    .enter().append("text")
-                      .text(function (d, i) {
-                       return majors[map_3(i)]; 
-                     })
-                      .attr("x", 0)
-                      .attr("y", function(d, i) {
-                        var len = 0;
-                        for (var t = 0; t < (Math.floor(i%18)); ++t) {
-                          len += scale_3[map_3(t)]*squareWidth;
-                        } 
-                        len += 0.5 * scale_3[map_3(t)]*squareWidth;
-                        return (len-10); 
-                      })
-                      .style("text-anchor", "end")
-                      .style("font-size","15px")
-                      .attr("transform", "translate(-6," + gridSize / 1.5 + ")")
-                      .attr("class", function (d, i) { return ((i >= 0 && i <= 17) ? "matchLabel mono axis axis-workweek" : "matchLabel mono axis"); });
-              var majorLabels_1 = svg.selectAll(".majorLabel")
-                  .data(matchs)
-                  .enter().append("text")
-                    .text(function (d, i) {
-                       return majors[map_3(i)][0]; 
-                     })
-                    .attr("x", function(d, i) {
-                      var len = 0;
-                      for (var t = 0; t < (Math.floor(i%18)); ++t) {
-                        len += scale_3[map_3(t)]*squareWidth;
-                      } 
-                      len += 0.5 * scale_3[map_3(t)]*squareWidth;
-                      return (len-10); 
-                    })
-                    .attr("y", squareWidth + 25)
-                    .style("text-anchor", "middle")
-                    .style("font-size","15px")
-                    .attr("transform", "translate(" + gridSize / 1.5 + ", -6)")
-                    .attr("class", function(d, i) { return ((i >= 0 && i <= 17) ? "timeLabel mono axis axis-worktime" : "timeLabel mono axis"); }); 
-              var majorLabels_2 = svg.selectAll(".majorLabel")
-                  .data(matchs)
-                  .enter().append("text")
-                    .text(function (d, i) {
-                       return majors[map_3(i)][1]; 
-                     })
-                    .attr("x", function(d, i) {
-                      var len = rowPadding;
-                      for (var t = 0; t < (Math.floor(i%18)); ++t) {
-                        len += scale_3[map_3(t)]*squareWidth;
-                      } 
-                      len += 0.5 * scale_3[map_3(t)]*squareWidth;
-                      return (len-10); 
-                    })
-                    .attr("y", squareWidth + 25 + linePadding)
-                    .style("text-anchor", "middle")
-                    .style("font-size","15px")
-                    .attr("transform", "translate(" + gridSize / 1.5 + ", -6)")
-                    .attr("class", function(d, i) { return ((i >= 0 && i <= 17) ? "timeLabel mono axis axis-worktime" : "timeLabel mono axis"); }); 
-              var majorLabels_3 = svg.selectAll(".majorLabel")
-                  .data(matchs)
-                  .enter().append("text")
-                    .text(function (d, i) {
-                       return majors[map_3(i)][2]; 
-                     })
-                    .attr("x", function(d, i) {
-                      var len = rowPadding * 2;
-                      for (var t = 0; t < (Math.floor(i%18)); ++t) {
-                        len += scale_3[map_3(t)]*squareWidth;
-                      } 
-                      len += 0.5 * scale_3[map_3(t)]*squareWidth;
-                      return (len-10); 
-                    })
-                    .attr("y", squareWidth + 25 + linePadding * 2)
-                    .style("text-anchor", "middle")
-                    .style("font-size","15px")
-                    .attr("transform", "translate(" + gridSize / 1.5 + ", -6)")
-                    .attr("class", function(d, i) { return ((i >= 0 && i <= 17) ? "timeLabel mono axis axis-worktime" : "timeLabel mono axis"); }); 
-                var heatMap = svg.selectAll(".hit")
-                    .data(sum_3)
-                    .enter().append("rect")
-                    .attr("x", function(d, i) {
-                      var len = 0;
-                      for (var t = 0; t < (i%18); ++t) {
-                        len += scale_3[map_3(t)]*squareWidth;
-                      }
-                      return len; 
-                    })
-                    .attr("y", function(d, i) {
-                      var len = 0;
-                      for (var t = 0; t < (Math.floor(i/18)); ++t) {
-                        len += scale_3[map_3(t)]*squareWidth;
-                      } 
-                      return len; 
-                    })
-                    .attr("rx", 4)
-                    .attr("ry", 4)
-                    .attr("class", "hour bordered")
-                    .attr("width", function(d, i) {return scale_3[map_3(i%18)]*squareWidth; })
-                    .attr("height", function(d, i) {return scale_3[map_3(Math.floor(i/18))]*squareWidth; })
-                    .style("fill", colors[0]);
-                heatMap.transition().duration(1000)
-                    .style("fill", function(d, i) { 
-                      for (var t = 1; t < range.length; ++t) {
-                        if(d/number_3[Math.floor(i/18)] <= range[t])
-                          return colors[t-1];
-                      }
-                      return colors[range.length - 1]; 
-                    });
-                heatMap.append("title").text(function(d, i) { return d/number_3[Math.floor(i/18)]; });
-          });
-          function major2index_1(major) {
-            var num = 0;
-            if(major == "Agric. & Nat. Res. Cons") num = 8;
-            if(major == "Architecture") num = 17;
-            if(major == "Area, Eth. & Multidiscip. Studies") num = 13;
-            if(major == "Arts: Visual & Performing") num = 6;
-            if(major == "Business") num = 0;
-            if(major == "Commun, Fam., & Personal Svcs") num = 2;
-            if(major == "Communications") num = 10;
-            if(major == "Comp. Sci. & Mathematics") num = 4;
-            if(major == "Education") num = 1;
-            if(major == "Eng. Tech. & Drafting") num = 12;
-            if(major == "Engineering") num = 15;
-            if(major == "English & Foreign Lang.") num = 11;
-            if(major == "Health Admin. & Assisting") num = 5;
-            if(major == "Health Sci. & Techno.") num = 3;
-            if(major == "Philosophy, Religion, & Theology") num = 16;
-            if(major == "Repair, Production, & Construction") num = 7;
-            if(major == "Sciences: Biological & Physical") num = 14;
-            if(major == "Social Sciences & Law") num = 9;
-            return num;
-          }
-          function major2index_2(major) {
-            var num = 0;
-            if(major == "Agric. & Nat. Res. Cons") num = 8;
-            if(major == "Architecture") num = 17;
-            if(major == "Area, Eth. & Multidiscip. Studies") num = 13;
-            if(major == "Arts: Visual & Performing") num = 6;
-            if(major == "Business") num = 0;
-            if(major == "Commun, Fam., & Personal Svcs") num = 2;
-            if(major == "Communications") num = 10;
-            if(major == "Comp. Sci. & Mathematics") num = 5;
-            if(major == "Education") num = 1;
-            if(major == "Eng. Tech. & Drafting") num = 14;
-            if(major == "Engineering") num = 15;
-            if(major == "English & Foreign Lang.") num = 11;
-            if(major == "Health Admin. & Assisting") num = 4;
-            if(major == "Health Sci. & Techno.") num = 3;
-            if(major == "Philosophy, Religion, & Theology") num = 16;
-            if(major == "Repair, Production, & Construction") num = 9;
-            if(major == "Sciences: Biological & Physical") num = 12;
-            if(major == "Social Sciences & Law") num = 7;
-            return num;
-          }
-          function major2index_3(major) {
-            var num = 0;
-            if(major == "Agric. & Nat. Res. Cons") num = 8;
-            if(major == "Architecture") num = 17;
-            if(major == "Area, Eth. & Multidiscip. Studies") num = 13;
-            if(major == "Arts: Visual & Performing") num = 6;
-            if(major == "Business") num = 0;
-            if(major == "Commun, Fam., & Personal Svcs") num = 2;
-            if(major == "Communications") num = 12;
-            if(major == "Comp. Sci. & Mathematics") num = 5;
-            if(major == "Education") num = 1;
-            if(major == "Eng. Tech. & Drafting") num = 14;
-            if(major == "Engineering") num = 15;
-            if(major == "English & Foreign Lang.") num = 11;
-            if(major == "Health Admin. & Assisting") num = 4;
-            if(major == "Health Sci. & Techno.") num = 3;
-            if(major == "Philosophy, Religion, & Theology") num = 16;
-            if(major == "Repair, Production, & Construction") num = 9;
-            if(major == "Sciences: Biological & Physical") num = 10;
-            if(major == "Social Sciences & Law") num = 7;
-            return num;
-          }
-
-        sankeyGraph("#chart4", "raw.json");
-        sankeyGraph("#chart5", "raw_2.json");
-
-        function sankeyGraph(id, file) {
-          var units = "Widgets";
-           
-          var margin_sankey = {top: margin.top, right: 0, bottom: 10, left: 0},
-              width_sankey = 180 - margin_sankey.left - margin_sankey.right + margin.left,
-              height_sankey = 900 - margin_sankey.top - margin_sankey.bottom;
-           
-          var formatNumber = d3.format(",.0f"),
-              format = function(d) { return formatNumber(d) + " " + units; },
-              color = d3.scale.category20();
-           
-          // append the svg canvas to the page
-          var svg = d3.select(id).append("svg")
-              .attr("width", width_sankey + margin_sankey.left + margin_sankey.right)
-              .attr("height", height_sankey + margin_sankey.top + margin_sankey.bottom)
-            .append("g")
-              .attr("transform", 
-                    "translate(" + margin_sankey.left + "," + margin_sankey.top + ")");
-           
-          var sankey = d3.sankey()
-              .nodeWidth(0)
-              .nodePadding(0)
-              .size([width_sankey, height_sankey]);
-           
-          var path = sankey.link();
-
-          var linkWidth = new Array();
-
-          // load the data
-          d3.json(file, function(error, graph) {
-           
-              var nodeMap = {};
-              graph.nodes.forEach(function(x) { nodeMap[x.name] = x;});
-              graph.links = graph.links.map(function(x) {
-                return {
-                  source: nodeMap[x.source],
-                  target: nodeMap[x.target],
-                  value: x.value,
-                };
-              });
-           
-            sankey
-                .nodes(graph.nodes)
-                .links(graph.links)
-                .layout(0);
-           
-          graph.links.forEach(function(link, i){
-            if(id == "#chart4") {
-              link.dy = link.value*scale_1[map_1(major2index_1(link.source.name))]*squareWidth;
+            text.axis-workweek {
+                fill: #000;
             }
-            else
-              link.dy = link.value*scale_2[map_2(major2index_1(link.source.name))]*squareWidth;
-          });
-
-          graph.nodes.forEach(function(node, i) {
-              node.x = (i<18)?0:(width_sankey-0);
-              var len = 0;
-              if(i<18) {
-                for (var t = 0; t < i; ++t) {
-                  if(id == "#chart4") len += scale_1[map_1(t)]*squareWidth;
-                  else len += scale_2[map_2(t)]*squareWidth;
+            text.axis-worktime {
+                fill: #000;
+            }
+            .node rect {
+                cursor: move;
+                fill-opacity: .9;
+                shape-rendering: crispEdges;
+            }
+            .node text {
+                pointer-events: none;
+                text-shadow: 0 1px 0 #fff;
+            }
+            .link {
+                fill: none;
+                stroke: #000;
+                stroke-opacity: .5;
+            }
+            .link:hover {
+                stroke-opacity: .8;
+            }
+            div.barClass{
+                border: 0px solid #000;
+                width: 900px;
+                height: 70px;
+                margin-left: 51px;
+                float: left;
+            }
+            div.small{
+                border: 0px solid #000;
+                width: 720px;
+                height: 760px;
+                float: left;
+            }
+            div.sankey{
+                border: 0px solid #000;
+                width: 180px;
+                height: 760px;
+                float: left;
+            }
+            </style>
+            <script src="http://d3js.org/d3.v3.js"></script>
+            <script src="sankey.js"></script>
+        </head>
+        <body>
+            <div >
+                <div class="barClass" id="barChart0"></div>
+                <div class="barClass" style="margin-left:0px" id="barChart1"></div>
+                <div class="barClass" style="margin-left:0px; width:670px" id="barChart2"></div>
+                <div class="barClass" id="barChart3"></div>
+                <div class="barClass" style="margin-left:0px" id="barChart4"></div>
+                <div class="barClass" style="margin-left:0px; width:670px" id="barChart5"></div>
+                <div class="barClass" id="barChart6"></div>
+                <div class="barClass" style="margin-left:0px" id="barChart7"></div>
+                <div class="barClass" style="margin-left:0px; width:670px" id="barChart8"></div>
+                <div class="small" id="chart1"></div>
+                <div class="sankey" id="chart4"></div>
+                <div class="small" id="chart2"></div>
+                <div class="sankey" id="chart5"></div>
+                <div class="small" id="chart3"></div>
+            </div>
+            
+            <script type="text/javascript">
+                var margin = { top: 0, right: 0, bottom: 100, left: 50 },
+                width = 750 - margin.left - margin.right,
+                height = 900 - margin.top - margin.bottom,
+                gridSize = Math.floor(width / 36),
+                legendElementWidth = gridSize*5.05,
+                buckets = 7,
+                colors = ["#ffffd9","#c7e9b4","#7fcdbb","#41b6c4","#1d91c0","#225ea8","#081d58"],
+                // colors = ["#ffffd9","#edf8b1","#c7e9b4","#7fcdbb","#41b6c4","#1d91c0","#225ea8","#253494","#081d58"],
+                majors = ["A&N", "ARC", "A&M", "ART", "BUS", "C&P", "COM", "C&M", "EDU", "E&D", "ENG", "E&F", "H&A", "H&T", "P&T", "R&C", "SCI", "S&L"],
+                majorss = ["Agric. & Nat. Res. Cons","Architecture","Area, Eth. & Multidiscip. Studies","Arts: Visual & Performing","Business","Commun, Fam., & Personal Svcs","Communications","Comp. Sci. & Mathematics","Education","Eng. Tech. & Drafting","Engineering","English & Foreign Lang.","Health Admin. & Assisting","Health Sci. & Techno.","Philosophy, Religion, & Theology","Repair, Production, & Construction","Sciences: Biological & Physical", "Social Sciences & Law"],
+                matchs = ["BUS", "EDU", "C&P", "H&T", "C&M", "H&A", "ART", "R&C", "A&N", "S&L", "COM", "E&F", "E&D", "A&M", "SCI", "ENG", "P&T", "ARC"],
+                matchess = ["Business", "Education", "Commun, Fam., & Personal Svcs", "Health Sci. & Techno.", "Comp. Sci. & Mathematics", "Health Admin. & Assisting", "Art", "Repair, Production, & Construction", "Agr", "Social Sciences & Law", "Communications", "English & Foreign Lang.", "Eng. Tech. & Drafting", "Are", "Sciences: Biological & Physical", "Engineering", "Philosophy, Religion, & Theology", "Arc"],
+                range = [0, 0.05, 0.1, 0.15, 0.25, 0.35, 0.4];
+                
+                var squareWidth = 669;
+                var linePadding = 12;
+                var rowPadding = 14;
+                
+                var scale_1 = [0.0440, 0.0396, 0.0134, 0.0697, 0.0833, 0.0443, 0.0513, 0.0524, 0.0663, 0.0402, 0.0840, 0.0403, 0.0500, 0.1076, 0.0265, 0.0307, 0.0786, 0.0778];
+                var scale_2 = [0.0487, 0.0278, 0.0150, 0.0642, 0.0884, 0.0698, 0.0537, 0.0542, 0.0648, 0.0407, 0.0830, 0.0436, 0.0335, 0.0835, 0.0256, 0.0373, 0.0907, 0.0753];
+                var scale_3 = [0.0489, 0.0273, 0.0156, 0.0631, 0.0902, 0.0729, 0.0561, 0.0553, 0.0654, 0.0406, 0.0794, 0.0448, 0.0346, 0.0799, 0.0261, 0.0380, 0.0855, 0.0762];
+                
+                // number of people for a major
+                var number_1 = new Array();
+                var number_2 = new Array();
+                var number_3 = new Array();
+                
+                // 2-d array
+                var male_number = new Array();
+                var four_year_type = new Array();
+                var fit_1 = new Array();
+                var fit_2 = new Array();
+                var fit_3 = new Array();
+                var array_1 = new Array();
+                var array_2 = new Array();
+                var array_3 = new Array();
+                var sum_1 = new Array();
+                var sum_2 = new Array();
+                var sum_3 = new Array();
+                
+                var SUM = 0;
+                
+                var max_1 = 0;
+                var max_2 = 0;
+                var max_3 = 0;
+                
+                // temp
+                var transfer_12 = new Array();
+                var transfer_23 = new Array();
+                
+                for(var i = 0; i < 18; ++i){
+                    male_number[i] = new Array();
+                    four_year_type[i] = new Array();
+                    fit_1[i] = new Array();
+                    fit_2[i] = new Array();
+                    fit_3[i] = new Array();
+                    array_1[i] = new Array();
+                    array_2[i] = new Array();
+                    array_3[i] = new Array();
+                    number_1[i] = 0;
+                    number_2[i] = 0;
+                    number_3[i] = 0;
+                    
+                    // temp
+                    transfer_12[i] = new Array();
+                    transfer_23[i] = new Array();
+                    
+                    for(var j = 0; j < 18; ++j){
+                        male_number[i][j] = 0;
+                        four_year_type[i][j] = 0;
+                        fit_1[i][j] = 0;
+                        fit_2[i][j] = 0;
+                        fit_3[i][j] = 0;
+                        array_1[i][j] = 0;
+                        array_2[i][j] = 0;
+                        array_3[i][j] = 0;
+                        
+                        // temp
+                        transfer_12[i][j] = 0;
+                        transfer_23[i][j] = 0;
+                    }
                 }
-              }
-              else {
-                for (var t = 0; t < i%18; ++t) {
-                  if(id == "#chart4") len += scale_2[map_2(t)]*squareWidth;
-                  else len += scale_3[map_3(t)]*squareWidth;
+            
+            d3.csv("student.csv", function(d) {
+                   var i = major2index_1(d.T1_Level2);
+                   var j = major2index_1(d.HighestLevel2);
+                   var ii = major2index_1(d.T2_Level2);
+                   var iii = major2index_1(d.T3_Level2);
+                   
+                   transfer_12[i][ii] += d.count/1;
+                   transfer_23[ii][iii] += d.count/1;
+                   
+                   array_1[i][j] += d.count/1;
+                   number_1[i] += d.count/1;
+                   if(d.Gender == "Male") male_number[0][i] += d.count/1;
+                   if(d.YR1 == "4-year") four_year_type[0][i] += d.count/1;
+                   switch(d.T1_IMFIT) {
+                   case "Good" : fit_1[i][0] += d.count/1; break;
+                   case "Moderate" : fit_1[i][1] += d.count/1; break;
+                   case "Poor" : fit_1[i][2] += d.count/1; break;
+                   }
+                   
+                   i = major2index_2(d.T2_Level2);
+                   j = major2index_2(d.HighestLevel2);
+                   array_2[i][j] += d.count/1;
+                   number_2[i] += d.count/1;
+                   if(d.Gender == "Male") male_number[1][i] += d.count/1;
+                   if(d.YR2 == "4-year") four_year_type[1][i] += d.count/1;
+                   switch(d.T2_IMFIT) {
+                   case "Good" : fit_2[i][0] += d.count/1; break;
+                   case "Moderate" : fit_2[i][1] += d.count/1; break;
+                   case "Poor" : fit_2[i][2] += d.count/1; break;
+                   }
+                   
+                   i = major2index_3(d.T3_Level2);
+                   j = major2index_3(d.HighestLevel2);
+                   array_3[i][j] += d.count/1;
+                   number_3[i] += d.count/1;
+                   if(d.Gender == "Male") male_number[2][i] += d.count/1;
+                   switch(d.T3_IMFIT) {
+                   case "Good" : fit_3[i][0] += d.count/1; break;
+                   case "Moderate" : fit_3[i][1] += d.count/1; break;
+                   case "Poor" : fit_3[i][2] += d.count/1; break;
+                   }
+                   
+                   SUM += d.count/1;
+                   
+                   return {
+                   };
+                   },
+                   function(error, data) {
+                   for(var i = 0; i < 18; ++i)
+                   for(var j = 0; j < 18; ++j) {
+                   transfer_12[i][j] = transfer_12[i][j] / number_1[i];
+                   transfer_23[i][j] = transfer_23[i][j] / number_2[i];
+                   }
+                   
+                   for(var j = 0; j < 18; ++j) {
+                   var sum = 0;
+                   for(var i = 0; i < 18; ++i) {
+                   sum += array_2[i][j] / number_2[i];
+                   }
+                   }
+                   for(var j = 0; j < 18; ++j) {
+                   var sum = 0;
+                   for(var i = 0; i < 18; ++i) {
+                   sum += array_1[i][j] / number_1[i];
+                   }
+                   }
+                   // for(var i = 0; i < 18; ++i)
+                   //   for(var j = 0; j < 18; ++j) {
+                   //     if(transfer_23[i][j] > 0 && i != j)
+                   //     console.log("{\"source\":\"" + majorss[map_1(i)] + "\",\"target\":\"" + majorss[map_1(j)] + "*\",\"value\":\"" + transfer_23[i][j] + "\"},");
+                   //   }
+                   
+                   // console.log(majorss[3]);
+                   // console.log(majorss[3]);
+                   // console.log(transfer_12[3][3]);
+                   
+                   for(var i = 0; i < 18; ++i)
+                   for(var j = 0; j < 18; ++j) {
+                   sum_1[i*18+j] = array_1[i][j];
+                   
+                   sum_2[i*18+j] = array_2[i][j];
+                   
+                   if(array_3[i][j] > max_3)
+                   max_3 = array_3[i][j];
+                   sum_3[i*18+j] = array_3[i][j];
+                   }
+                   
+                   // console.log(four_year_type[]);
+                   
+                   for(var i = 0; i < 3; ++i) {
+                   for(var j = 0; j < 18; ++j) {
+                   var dataset = new Array();
+                   switch(i) {
+                   case 0 :
+                   dataset[0] = scale_1[map_1(j)] * squareWidth * fit_1[j][0]/number_1[j];
+                   dataset[1] = scale_1[map_1(j)] * squareWidth * fit_1[j][1]/number_1[j];
+                   dataset[2] = scale_1[map_1(j)] * squareWidth * fit_1[j][2]/number_1[j];
+                   barGraph(scale_1[map_1(j)] * squareWidth, 30, dataset, "#barChart" + (i+3), i+3);
+                   dataset = new Array();
+                   dataset[0] = scale_1[map_1(j)] * squareWidth * male_number[i][j]/number_1[j];
+                   dataset[1] = scale_1[map_1(j)] * squareWidth * (1 - male_number[i][j]/number_1[j]);
+                   barGraph(scale_1[map_1(j)] * squareWidth, 30, dataset, "#barChart" + (i+6), i+6);
+                   break;
+                   case 1 :
+                   dataset[0] = scale_2[map_2(j)] * squareWidth * four_year_type[0][j]/number_1[j];
+                   dataset[1] = scale_2[map_2(j)] * squareWidth * (1 - four_year_type[0][j]/number_1[j]);
+                   barGraph(scale_2[map_2(j)] * squareWidth, 40, dataset, "#barChart" + (i), i);
+                   dataset[0] = scale_2[map_2(j)] * squareWidth * fit_2[j][0]/number_2[j];
+                   dataset[1] = scale_2[map_2(j)] * squareWidth * fit_2[j][1]/number_2[j];
+                   dataset[2] = scale_2[map_2(j)] * squareWidth * fit_2[j][2]/number_2[j];
+                   barGraph(scale_2[map_2(j)] * squareWidth, 30, dataset, "#barChart" + (i+3), i+3);
+                   dataset = new Array();
+                   dataset[0] = scale_2[map_2(j)] * squareWidth * male_number[i][j]/number_2[j];
+                   dataset[1] = scale_2[map_2(j)] * squareWidth * (1 - male_number[i][j]/number_2[j]);
+                   barGraph(scale_2[map_2(j)] * squareWidth, 30, dataset, "#barChart" + (i+6), i+6);
+                   break;
+                   case 2 :
+                   dataset[0] = scale_3[map_3(j)] * squareWidth * four_year_type[1][j]/number_2[j];
+                   dataset[1] = scale_3[map_3(j)] * squareWidth * (1 - four_year_type[1][j]/number_2[j]);
+                   barGraph(scale_3[map_3(j)] * squareWidth, 40, dataset, "#barChart" + (i), i);
+                   dataset[0] = scale_3[map_3(j)] * squareWidth * fit_3[j][0]/number_3[j];
+                   dataset[1] = scale_3[map_3(j)] * squareWidth * fit_3[j][1]/number_3[j];
+                   dataset[2] = scale_3[map_3(j)] * squareWidth * fit_3[j][2]/number_3[j];
+                   barGraph(scale_3[map_3(j)] * squareWidth, 30, dataset, "#barChart" + (i+3), i+3);
+                   dataset = new Array();
+                   dataset[0] = scale_3[map_3(j)] * squareWidth * male_number[i][j]/number_3[j];
+                   dataset[1] = scale_3[map_3(j)] * squareWidth * (1 - male_number[i][j]/number_3[j]);
+                   barGraph(scale_3[map_3(j)] * squareWidth, 30, dataset, "#barChart" + (i+6), i+6);
+                   break;
+                   }
+                   }
+                   }
+                   var svg = d3.select("#chart1").append("svg")
+                   .attr("width", width + margin.left + margin.right)
+                   .attr("height", height + margin.top + margin.bottom)
+                   .append("g")
+                   .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+                   var matchLabels = svg.selectAll(".matchLabel")
+                   .data(matchs)
+                   .enter().append("text")
+                   .text(function (d, i) { return matchs[i]; })
+                   .attr("x", 0)
+                   .attr("y", function(d, i) {
+                         var len = 0;
+                         for (var t = 0; t < (Math.floor(i%18)); ++t) {
+                         len += scale_1[map_1(t)]*squareWidth;
+                         }
+                         len += 0.5 * scale_1[map_1(t)]*squareWidth;
+                         return (len-10);
+                         })
+                   .style("text-anchor", "end")
+                   .style("font-size","16px")
+                   .attr("transform", "translate(-6," + gridSize / 1.5 + ")")
+                   .attr("class", function (d, i) { return ((i >= 0 && i <= 17) ? "matchLabel mono axis axis-workweek" : "matchLabel mono axis"); });
+                   for(var t = 0; t < 3; ++t) {
+                   var padding = linePadding * t;
+                   var index = t;
+                   var majorLabels = svg.selectAll(".majorLabel")
+                   .data(matchs)
+                   .enter().append("text")
+                   .text(function (d, i) {
+                         return majors[map_1(i)][t];
+                         })
+                   .attr("x", function(d, i) {
+                         var len = rowPadding * index;
+                         for (var t = 0; t < (Math.floor(i%18)); ++t) {
+                         len += scale_1[map_1(t)]*squareWidth;
+                         }
+                         len += 0.5 * scale_1[map_1(t)]*squareWidth;
+                         return (len-10);
+                         })
+                   .attr("y", squareWidth + 25 + padding)
+                   .style("text-anchor", "middle")
+                   .style("font-size","16px")
+                   .attr("transform", "translate(" + gridSize / 1.5 + ", -6)")
+                   .attr("class", function(d, i) { return ((i >= 0 && i <= 17) ? "timeLabel mono axis axis-worktime" : "timeLabel mono axis"); });
+                   }
+                   var heatMap = svg.selectAll(".hit")
+                   .data(sum_1)
+                   .enter().append("rect")
+                   .attr("x", function(d, i) {
+                         var len = 0;
+                         for (var t = 0; t < (i%18); ++t) {
+                         len += scale_1[map_1(t)]*squareWidth;
+                         }
+                         return len;
+                         })
+                   .attr("y", function(d, i) {
+                         var len = 0;
+                         for (var t = 0; t < (Math.floor(i/18)); ++t) {
+                         len += scale_1[map_1(t)]*squareWidth;
+                         }
+                         return len;
+                         })
+                   .attr("rx", 4)
+                   .attr("ry", 4)
+                   .attr("class", "hour bordered")
+                   .attr("width", function(d, i) {return scale_1[map_1(i%18)]*squareWidth; })
+                   .attr("height", function(d, i) {return scale_1[map_1(Math.floor(i/18))]*squareWidth; })
+                   .style("fill", colors[0]);
+                   heatMap.transition().duration(1000)
+                   .style("fill", function(d, i) {
+                          if(d/number_1[Math.floor(i/18)] == 0)
+                          return colors[0];
+                          for (var t = 1; t < range.length; ++t) {
+                          if(d/number_1[Math.floor(i/18)] <= range[t])
+                          return colors[t-1];
+                          }
+                          return colors[range.length - 1];
+                          });
+                   heatMap.append("title").text(function(d, i) { return d/number_1[Math.floor(i/18)]; });
+                   
+                   });
+                   d3.csv("student.csv", function(d) { return {};
+                          },
+                          function(error, data) {
+                          var svg = d3.select("#chart2").append("svg")
+                          .attr("width", width*3 + margin.left + margin.right)
+                          .attr("height", height*2 + margin.top + margin.bottom)
+                          .append("g")
+                          .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+                          var matchLabels = svg.selectAll(".matchLabel")
+                          .data(matchs)
+                          .enter().append("text")
+                          .text(function (d, i) {
+                                return majors[map_2(i)];
+                                })
+                          .attr("x", 0)
+                          .attr("y", function(d, i) {
+                                var len = 5;
+                                for (var t = 0; t < (Math.floor(i%18)); ++t) {
+                                len += scale_2[map_2(t)]*squareWidth;
+                                }
+                                len += 0.5 * scale_2[map_2(t)]*squareWidth;
+                                if(i == 0) len += 7;
+                                if(i == 13) len -= 3;
+                                return (len-10);
+                                })
+                          .style("text-anchor", "end")
+                          .style("font-size","16px")
+                          .attr("transform", "translate(-7," + gridSize / 1.5 + ")")
+                          .attr("class", function (d, i) { return ((i >= 0 && i <= 17) ? "matchLabel mono axis axis-workweek" : "matchLabel mono axis"); });
+                          for(var t = 0; t < 3; ++t) {
+                          var padding = linePadding * t;
+                          var index = t;
+                          var majorLabels = svg.selectAll(".majorLabel")
+                          .data(matchs)
+                          .enter().append("text")
+                          .text(function (d, i) {
+                                return majors[map_2(i)][t];
+                                })
+                          .attr("x", function(d, i) {
+                                var len = rowPadding * index;
+                                for (var t = 0; t < (Math.floor(i%18)); ++t) {
+                                len += scale_2[map_2(t)]*squareWidth;
+                                }
+                                len += 0.5 * scale_2[map_2(t)]*squareWidth;
+                                return (len-10);
+                                })
+                          .attr("y", squareWidth + 25 + padding)
+                          .style("text-anchor", "middle")
+                          .style("font-size","16px")
+                          .attr("transform", "translate(" + gridSize / 1.5 + ", -6)")
+                          .attr("class", function(d, i) { return ((i >= 0 && i <= 17) ? "timeLabel mono axis axis-worktime" : "timeLabel mono axis"); });
+                          }
+                          var heatMap = svg.selectAll(".hit")
+                          .data(sum_2)
+                          .enter().append("rect")
+                          .attr("x", function(d, i) {
+                                var len = 0;
+                                for (var t = 0; t < (i%18); ++t) {
+                                len += scale_2[map_2(t)]*squareWidth;
+                                }
+                                return len;
+                                })
+                          .attr("y", function(d, i) {
+                                var len = 0;
+                                for (var t = 0; t < (Math.floor(i/18)); ++t) {
+                                len += scale_2[map_2(t)]*squareWidth;
+                                }
+                                return len;
+                                })
+                          .attr("rx", 4)
+                          .attr("ry", 4)
+                          .attr("class", "hour bordered")
+                          .attr("width", function(d, i) {return scale_2[map_2(i%18)]*squareWidth; })
+                          .attr("height", function(d, i) {return scale_2[map_2(Math.floor(i/18))]*squareWidth; })
+                          .style("fill", colors[0]);
+                          heatMap.transition().duration(1000)
+                          .style("fill", function(d, i) {
+                                 for (var t = 1; t < range.length; ++t) {
+                                 if(d/number_2[Math.floor(i/18)] <= range[t])
+                                 return colors[t-1];
+                                 }
+                                 return colors[range.length - 1];
+                                 });
+                          heatMap.append("title").text(function(d, i) { return d/number_2[Math.floor(i/18)]; });
+                          
+                          var legend = svg.selectAll(".legend")
+                          .data(range)
+                          .enter().append("g")
+                          .attr("class", "legend");
+                          legend.append("rect")
+                          .attr("x", function(d, i) { return legendElementWidth * i + 300; })
+                          .attr("y", height+40)
+                          .attr("width", legendElementWidth)
+                          .attr("height", gridSize / 2)
+                          .style("fill", function(d, i) { return colors[i]; });
+                          legend.append("text")
+                          .attr("class", "mono")
+                          .text(function(d) { return "≥ " + d; })
+                          .attr("x", function(d, i) { return legendElementWidth * i + 300; })
+                          .attr("y", height+73)
+                          .style("font-size", "16px");
+                          
+                          var abbreviation = svg.selectAll(".tag")
+                          .data(majors)
+                          .enter().append("g");
+                          abbreviation.append("text")
+                          .attr("class", "mono")
+                          .text(function(d) { return d; })
+                          .attr("x", function(d, i) { if(i<10) return 520 * Math.floor(i/5) + 120; else return 520 * 2 + 120; })
+                          .attr("y", function(d, i) { if(i<10) return height + 37 * (i % 5 + 2) + 80; else return height + 37 * ((i-10) % 8 - 1) + 80;})
+                          .style("fill", "black")
+                          .style("font-size", "18px");
+                          
+                          var name = svg.selectAll(".tag")
+                          .data(majorss)
+                          .enter().append("g");
+                          name.append("text")
+                          .attr("class", "mono")
+                          .text(function(d) { return d; })
+                          .attr("x", function(d, i) { if(i<10) return 520 * Math.floor(i/5)+ 170; else return 520 * 2 + 170; })
+                          .attr("y", function(d, i) { if(i<10) return height + 37 * (i % 5 + 2) + 80; else return height + 37 * ((i-10) % 8 - 1) + 80;})
+                          .style("font-size", "18px");
+                          });
+                          d3.csv("student.csv", function(d) { return {};
+                                 },
+                                 function(error, data) {
+                                 var svg = d3.select("#chart3").append("svg")
+                                 .attr("width", width + margin.left + margin.right)
+                                 .attr("height", height + margin.top + margin.bottom)
+                                 .append("g")
+                                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+                                 var matchLabels = svg.selectAll(".matchLabel")
+                                 .data(matchs)
+                                 .enter().append("text")
+                                 .text(function (d, i) {
+                                       return majors[map_3(i)];
+                                       })
+                                 .attr("x", 0)
+                                 .attr("y", function(d, i) {
+                                       var len = 0;
+                                       for (var t = 0; t < (Math.floor(i%18)); ++t) {
+                                       len += scale_3[map_3(t)]*squareWidth;
+                                       }
+                                       len += 0.5 * scale_3[map_3(t)]*squareWidth;
+                                       return (len-10);
+                                       })
+                                 .style("text-anchor", "end")
+                                 .style("font-size","16px")
+                                 .attr("transform", "translate(-6," + gridSize / 1.5 + ")")
+                                 .attr("class", function (d, i) { return ((i >= 0 && i <= 17) ? "matchLabel mono axis axis-workweek" : "matchLabel mono axis"); });
+                                 for(var t = 0; t < 3; ++t) {
+                                 var padding = linePadding * t;
+                                 var index = t;
+                                 var majorLabels = svg.selectAll(".majorLabel")
+                                 .data(matchs)
+                                 .enter().append("text")
+                                 .text(function (d, i) {
+                                       return majors[map_3(i)][t];
+                                       })
+                                 .attr("x", function(d, i) {
+                                       var len = rowPadding * index;
+                                       for (var t = 0; t < (Math.floor(i%18)); ++t) {
+                                       len += scale_3[map_3(t)]*squareWidth;
+                                       }
+                                       len += 0.5 * scale_3[map_3(t)]*squareWidth;
+                                       return (len-10);
+                                       })
+                                 .attr("y", squareWidth + 25 + padding)
+                                 .style("text-anchor", "middle")
+                                 .style("font-size","16px")
+                                 .attr("transform", "translate(" + gridSize / 1.5 + ", -6)")
+                                 .attr("class", function(d, i) { return ((i >= 0 && i <= 17) ? "timeLabel mono axis axis-worktime" : "timeLabel mono axis"); });
+                                 }
+                                 var heatMap = svg.selectAll(".hit")
+                                 .data(sum_3)
+                                 .enter().append("rect")
+                                 .attr("x", function(d, i) {
+                                       var len = 0;
+                                       for (var t = 0; t < (i%18); ++t) {
+                                       len += scale_3[map_3(t)]*squareWidth;
+                                       }
+                                       return len;
+                                       })
+                                 .attr("y", function(d, i) {
+                                       var len = 0;
+                                       for (var t = 0; t < (Math.floor(i/18)); ++t) {
+                                       len += scale_3[map_3(t)]*squareWidth;
+                                       }
+                                       return len;
+                                       })
+                                 .attr("rx", 4)
+                                 .attr("ry", 4)
+                                 .attr("class", "hour bordered")
+                                 .attr("width", function(d, i) {return scale_3[map_3(i%18)]*squareWidth; })
+                                 .attr("height", function(d, i) {return scale_3[map_3(Math.floor(i/18))]*squareWidth; })
+                                 .style("fill", colors[0]);
+                                 heatMap.transition().duration(1000)
+                                 .style("fill", function(d, i) {
+                                        for (var t = 1; t < range.length; ++t) {
+                                        if(d/number_3[Math.floor(i/18)] <= range[t])
+                                        return colors[t-1];
+                                        }
+                                        return colors[range.length - 1];
+                                        });
+                                 heatMap.append("title").text(function(d, i) { return d/number_3[Math.floor(i/18)]; });
+                                 });
+                                 function major2index_1(major) {
+                                     var num = 0;
+                                     if(major == "Agric. & Nat. Res. Cons") num = 8;
+                                     if(major == "Architecture") num = 17;
+                                     if(major == "Area, Eth. & Multidiscip. Studies") num = 13;
+                                     if(major == "Arts: Visual & Performing") num = 6;
+                                     if(major == "Business") num = 0;
+                                     if(major == "Commun, Fam., & Personal Svcs") num = 2;
+                                     if(major == "Communications") num = 10;
+                                     if(major == "Comp. Sci. & Mathematics") num = 4;
+                                     if(major == "Education") num = 1;
+                                     if(major == "Eng. Tech. & Drafting") num = 12;
+                                     if(major == "Engineering") num = 15;
+                                     if(major == "English & Foreign Lang.") num = 11;
+                                     if(major == "Health Admin. & Assisting") num = 5;
+                                     if(major == "Health Sci. & Techno.") num = 3;
+                                     if(major == "Philosophy, Religion, & Theology") num = 16;
+                                     if(major == "Repair, Production, & Construction") num = 7;
+                                     if(major == "Sciences: Biological & Physical") num = 14;
+                                     if(major == "Social Sciences & Law") num = 9;
+                                     return num;
+                                 }
+            function major2index_2(major) {
+                var num = 0;
+                if(major == "Agric. & Nat. Res. Cons") num = 8;
+                if(major == "Architecture") num = 17;
+                if(major == "Area, Eth. & Multidiscip. Studies") num = 13;
+                if(major == "Arts: Visual & Performing") num = 6;
+                if(major == "Business") num = 0;
+                if(major == "Commun, Fam., & Personal Svcs") num = 2;
+                if(major == "Communications") num = 10;
+                if(major == "Comp. Sci. & Mathematics") num = 5;
+                if(major == "Education") num = 1;
+                if(major == "Eng. Tech. & Drafting") num = 14;
+                if(major == "Engineering") num = 15;
+                if(major == "English & Foreign Lang.") num = 11;
+                if(major == "Health Admin. & Assisting") num = 4;
+                if(major == "Health Sci. & Techno.") num = 3;
+                if(major == "Philosophy, Religion, & Theology") num = 16;
+                if(major == "Repair, Production, & Construction") num = 9;
+                if(major == "Sciences: Biological & Physical") num = 12;
+                if(major == "Social Sciences & Law") num = 7;
+                return num;
+            }
+            function major2index_3(major) {
+                var num = 0;
+                if(major == "Agric. & Nat. Res. Cons") num = 8;
+                if(major == "Architecture") num = 17;
+                if(major == "Area, Eth. & Multidiscip. Studies") num = 13;
+                if(major == "Arts: Visual & Performing") num = 6;
+                if(major == "Business") num = 0;
+                if(major == "Commun, Fam., & Personal Svcs") num = 2;
+                if(major == "Communications") num = 12;
+                if(major == "Comp. Sci. & Mathematics") num = 5;
+                if(major == "Education") num = 1;
+                if(major == "Eng. Tech. & Drafting") num = 14;
+                if(major == "Engineering") num = 15;
+                if(major == "English & Foreign Lang.") num = 11;
+                if(major == "Health Admin. & Assisting") num = 4;
+                if(major == "Health Sci. & Techno.") num = 3;
+                if(major == "Philosophy, Religion, & Theology") num = 16;
+                if(major == "Repair, Production, & Construction") num = 9;
+                if(major == "Sciences: Biological & Physical") num = 10;
+                if(major == "Social Sciences & Law") num = 7;
+                return num;
+            }
+            
+            sankeyGraph("#chart4", "raw.json");
+            sankeyGraph("#chart5", "raw_2.json");
+            
+            function sankeyGraph(id, file) {
+                var units = "Widgets";
+                
+                var margin_sankey = {top: margin.top, right: 0, bottom: 10, left: 0},
+                width_sankey = 180 - margin_sankey.left - margin_sankey.right + margin.left,
+                height_sankey = 900 - margin_sankey.top - margin_sankey.bottom;
+                
+                var formatNumber = d3.format(",.0f"),
+                format = function(d) { return formatNumber(d) + " " + units; },
+                color = d3.scale.category20();
+                
+                // append the svg canvas to the page
+                var svg = d3.select(id).append("svg")
+                .attr("width", width_sankey + margin_sankey.left + margin_sankey.right)
+                .attr("height", height_sankey + margin_sankey.top + margin_sankey.bottom)
+                .append("g")
+                .attr("transform",
+                      "translate(" + margin_sankey.left + "," + margin_sankey.top + ")");
+                      
+                      var sankey = d3.sankey()
+                      .nodeWidth(0)
+                      .nodePadding(0)
+                      .size([width_sankey, height_sankey]);
+                      
+                      var path = sankey.link();
+                      
+                      var linkWidth = new Array();
+                      
+                      // load the data
+                      d3.json(file, function(error, graph) {
+                              
+                              var nodeMap = {};
+                              graph.nodes.forEach(function(x) { nodeMap[x.name] = x;});
+                              graph.links = graph.links.map(function(x) {
+                                                            return {
+                                                            source: nodeMap[x.source],
+                                                            target: nodeMap[x.target],
+                                                            value: x.value,
+                                                            };
+                                                            });
+                              
+                              sankey
+                              .nodes(graph.nodes)
+                              .links(graph.links)
+                              .layout(0);
+                              
+                              graph.links.forEach(function(link, i){
+                                                  if(id == "#chart4") {
+                                                  link.dy = link.value*scale_1[map_1(major2index_1(link.source.name))]*squareWidth;
+                                                  }
+                                                  else
+                                                  link.dy = link.value*scale_2[map_2(major2index_1(link.source.name))]*squareWidth;
+                                                  });
+                              
+                              graph.nodes.forEach(function(node, i) {
+                                                  node.x = (i<18)?0:(width_sankey-0);
+                                                  var len = 0;
+                                                  if(i<18) {
+                                                  for (var t = 0; t < i; ++t) {
+                                                  if(id == "#chart4") len += scale_1[map_1(t)]*squareWidth;
+                                                  else len += scale_2[map_2(t)]*squareWidth;
+                                                  }
+                                                  }
+                                                  else {
+                                                  for (var t = 0; t < i%18; ++t) {
+                                                  if(id == "#chart4") len += scale_2[map_2(t)]*squareWidth;
+                                                  else len += scale_3[map_3(t)]*squareWidth;
+                                                  }
+                                                  }
+                                                  node.y = len;
+                                                  });
+                              
+                              sankey.relayout();
+                              
+                              var color = d3.scale.category20();
+                              // Link height
+                              var link = svg.append("g").selectAll(".link")
+                              .data(graph.links)
+                              .enter().append("path")
+                              .attr("class", "link")
+                              .attr("d", path)
+                              .style("stroke-width", function(d, i) {
+                                     return d.dy;
+                                     })
+                              .style("stroke", function(d){
+                                     if(d.value > 0.1)
+                                     return "#101010";
+                                     else
+                                     return "#e0e0e0";
+                                     })
+                              .sort(function(a, b) { return a.value - b.value; });
+                              
+                              // add in the nodes
+                              var node = svg.append("g").selectAll(".node")
+                              .data(graph.nodes)
+                              .enter().append("g")
+                              .attr("class", "node")
+                              .attr("transform", function(d) {
+                                    return "translate(" + d.x + "," + d.y + ")"; })
+                              .call(d3.behavior.drag()
+                                    .origin(function(d) { return d; })
+                                    .on("dragstart", function() {
+                                        this.parentNode.appendChild(this); })
+                                    .on("drag", dragmove));
+                              
+                              // Node height
+                              node.append("rect")
+                              .attr("height", function(d, i) {
+                                    if(i < 18) {
+                                    if(id == "#chart4") {
+                                    return scale_1[map_1(i)]*squareWidth; }
+                                    else {
+                                    return scale_2[map_2(i)]*squareWidth; }
+                                    }
+                                    else {
+                                    i -= 18;
+                                    if(id == "#chart4") {
+                                    return scale_2[map_2(i)]*squareWidth; }
+                                    else {
+                                    return scale_3[map_3(i)]*squareWidth; }
+                                    }
+                                    })
+                              .attr("width", sankey.nodeWidth())
+                              .style("fill", "#fff")
+                              .style("stroke", "#000")
+                              .append("title")
+                              .text(function(d) {
+                                    return d.name + "\n" + format(d.value); });
+                              
+                              // the function for moving the nodes
+                              function dragmove(d) {
+                              d3.select(this).attr("transform",
+                                                   "translate(" + (
+                                                                   d.x = Math.max(0, Math.min(width_sankey - d.dx, d3.event.x))
+                                                                   ) + "," + (
+                                                                              d.y = Math.max(0, Math.min(height_sankey - d.dy, d3.event.y))
+                                                                              ) + ")");
+                              sankey.relayout();
+                              link.attr("d", path);
+                              }
+                              });
+            }
+            
+            function barGraph(svgWidth, marginHeight, dataset, id, index) {
+                var rectHeight =15;
+                var svgHeight = 70;
+                var svg = d3.select(id)
+                .append("svg")
+                .attr("width", svgWidth)
+                .attr("height", svgHeight)
+                .append("g");
+                var tag = ["oh"];
+                
+                // console.log(index);
+                
+                svg.selectAll("rect")
+                .data(dataset)
+                .enter()
+                .append("rect")
+                .attr("x",function(d,i){
+                      return 0;
+                      })
+                      .attr("y",function(d,i){
+                            return i * rectHeight + marginHeight;
+                            })
+                            .attr("width",function(d){
+                                  return d;
+                                  })
+                                  .attr("height",rectHeight-2)
+                                  .attr("fill",function(d,i){
+                                        switch(index) {
+                                        case 1: ;
+                                        case 2: if(i == 0) return "#fa9fb5"; else return "#fcc5c0";
+                                        case 3:;
+                                        case 4:;
+                                        case 5: if(i == 0) return "#fa9fb5"; else if(i == 1) return "#fcc5c0"; else return "#feebe2";
+                                        case 6: ;
+                                        case 7: ;
+                                        case 8: if(i == 0) return "#fa9fb5"; else return "#fcc5c0";
+                                        }
+                                        });
+                                        // svg.selectAll(".tags")
+                                        //   .data(tag)
+                                        //   .enter()
+                                        //   .append("text")
+                                        //     .text(function (d) {
+                                        //      return d;
+                                        //    })
+                                        //     .attr("x", 0)
+                                        //     .attr("y", 0)
+                                        //     .style("text-anchor", "end")
+                                        //     .style("font-size","16px")
+                                        //     .attr("transform", "translate(0," + 0 + ")")
+                                        //     .attr("class", function (d, i) { return ((i >= 0 && i <= 17) ? "matchLabel mono axis axis-workweek" : "matchLabel mono axis"); });
+            }
+            
+            function map_1(num) {
+                var index = 0;
+                switch(num)
+                {
+                    case 8: index = 0; break;
+                    case 17: index = 1; break;
+                    case 13: index = 2; break;
+                    case 6: index = 3; break;
+                    case 0: index = 4; break;
+                    case 2: index = 5; break;
+                    case 10: index = 6; break;
+                    case 4: index = 7; break;
+                    case 1: index = 8; break;
+                    case 12: index = 9; break;
+                    case 15: index = 10; break;
+                    case 11: index = 11; break;
+                    case 5: index = 12; break;
+                    case 3: index = 13; break;
+                    case 16: index = 14; break;
+                    case 7: index = 15; break;
+                    case 14: index = 16; break;
+                    case 9: index = 17; break;
                 }
-              }
-              node.y = len;
-          });
-
-          sankey.relayout();
-
-          var color = d3.scale.category20();
-          // Link height
-          var link = svg.append("g").selectAll(".link")
-              .data(graph.links)
-            .enter().append("path")
-              .attr("class", "link")
-              .attr("d", path)
-              .style("stroke-width", function(d, i) {
-                return d.dy;
-              })
-              .style("stroke", function(d){
-                if(d.value > 0.1)
-                  return "#101010";
-                else
-                  return "#e0e0e0";
-              })
-              .sort(function(a, b) { return a.value - b.value; });
-
-          // add in the nodes
-          var node = svg.append("g").selectAll(".node")
-              .data(graph.nodes)
-            .enter().append("g")
-              .attr("class", "node")
-              .attr("transform", function(d) { 
-              return "translate(" + d.x + "," + d.y + ")"; })
-            .call(d3.behavior.drag()
-              .origin(function(d) { return d; })
-              .on("dragstart", function() { 
-              this.parentNode.appendChild(this); })
-              .on("drag", dragmove));
-          
-          // Node height
-          node.append("rect")
-              .attr("height", function(d, i) { 
-                if(i < 18) {
-                  if(id == "#chart4") {
-                    return scale_1[map_1(i)]*squareWidth; }
-                  else {
-                      return scale_2[map_2(i)]*squareWidth; }
+                return index;
+            }
+            function map_2(num) {
+                var index = 0;
+                switch(num)
+                {
+                    case 8: index = 0; break;
+                    case 17: index = 1; break;
+                    case 13: index = 2; break;
+                    case 6: index = 3; break;
+                    case 0: index = 4; break;
+                    case 2: index = 5; break;
+                    case 10: index = 6; break;
+                    case 4: index = 12; break;
+                    case 1: index = 8; break;
+                    case 12: index = 16; break;
+                    case 15: index = 10; break;
+                    case 11: index = 11; break;
+                    case 5: index = 7; break;
+                    case 3: index = 13; break;
+                    case 16: index = 14; break;
+                    case 7: index = 17; break;
+                    case 14: index = 9; break;
+                    case 9: index = 15; break;
                 }
-                else {
-                  i -= 18;
-                  if(id == "#chart4") {
-                    return scale_2[map_2(i)]*squareWidth; }
-                  else {
-                    return scale_3[map_3(i)]*squareWidth; }
+                return index;
+            }
+            function map_3(num) {
+                var index = 0;
+                switch(num)
+                {
+                    case 8: index = 0; break;
+                    case 17: index = 1; break;
+                    case 13: index = 2; break;
+                    case 6: index = 3; break;
+                    case 0: index = 4; break;
+                    case 2: index = 5; break;
+                    case 12: index = 6; break;
+                    case 5: index = 7; break;
+                    case 1: index = 8; break;
+                    case 14: index = 9; break;
+                    case 4: index = 10; break;
+                    case 11: index = 11; break;
+                    case 15: index = 12; break;
+                    case 3: index = 13; break;
+                    case 16: index = 14; break;
+                    case 9: index = 15; break;
+                    case 10: index = 16; break;
+                    case 7: index = 17; break;
                 }
-              })
-              .attr("width", sankey.nodeWidth())
-              .style("fill", "#fff")
-              .style("stroke", "#000")
-            .append("title")
-              .text(function(d) { 
-              return d.name + "\n" + format(d.value); });
-
-          // the function for moving the nodes
-          function dragmove(d) {
-            d3.select(this).attr("transform", 
-                "translate(" + (
-                     d.x = Math.max(0, Math.min(width_sankey - d.dx, d3.event.x))
-                  ) + "," + (
-                           d.y = Math.max(0, Math.min(height_sankey - d.dy, d3.event.y))
-                    ) + ")");
-            sankey.relayout();
-            link.attr("d", path);
-          }
-        });
-      }
-
-      function barGraph(svgWidth, marginHeight, dataset, id, index) {
-        var rectHeight =15;
-        var svgHeight = 70;
-        var svg = d3.select(id)      
-              .append("svg")     
-              .attr("width", svgWidth)
-              .attr("height", svgHeight);
-
-        svg.selectAll("rect")
-            .data(dataset)
-            .enter()
-            .append("rect")
-            .attr("x",function(d,i){
-              return 0;
-            })
-            .attr("y",function(d,i){
-              return i * rectHeight + marginHeight;
-            })
-            .attr("width",function(d){
-                return d;
-            })
-            .attr("height",rectHeight-2)
-            .attr("fill",function(d,i){
-              if(i==0) return "#D0D0D0"; else return "#E8E8E8"; 
-            });
-      }
-
-      function map_1(num) {
-        var index = 0;
-        switch(num)
-        {
-          case 8: index = 0; break;
-          case 17: index = 1; break;
-          case 13: index = 2; break;
-          case 6: index = 3; break;
-          case 0: index = 4; break;
-          case 2: index = 5; break;
-          case 10: index = 6; break;
-          case 4: index = 7; break;
-          case 1: index = 8; break;
-          case 12: index = 9; break;
-          case 15: index = 10; break;
-          case 11: index = 11; break;
-          case 5: index = 12; break;
-          case 3: index = 13; break;
-          case 16: index = 14; break;
-          case 7: index = 15; break;
-          case 14: index = 16; break;
-          case 9: index = 17; break; 
-        }
-        return index;
-      }
-      function map_2(num) {
-        var index = 0;
-        switch(num)
-        {
-          case 8: index = 0; break;
-          case 17: index = 1; break;
-          case 13: index = 2; break;
-          case 6: index = 3; break;
-          case 0: index = 4; break;
-          case 2: index = 5; break;
-          case 10: index = 6; break;
-          case 4: index = 12; break;
-          case 1: index = 8; break;
-          case 12: index = 16; break;
-          case 15: index = 10; break;
-          case 11: index = 11; break;
-          case 5: index = 7; break;
-          case 3: index = 13; break;
-          case 16: index = 14; break;
-          case 7: index = 17; break;
-          case 14: index = 9; break;
-          case 9: index = 15; break; 
-        }
-        return index;
-      }
-      function map_3(num) {
-        var index = 0;
-        switch(num)
-        {
-          case 8: index = 0; break;
-          case 17: index = 1; break;
-          case 13: index = 2; break;
-          case 6: index = 3; break;
-          case 0: index = 4; break;
-          case 2: index = 5; break;
-          case 12: index = 6; break;
-          case 5: index = 7; break;
-          case 1: index = 8; break;
-          case 14: index = 9; break;
-          case 4: index = 10; break;
-          case 11: index = 11; break;
-          case 15: index = 12; break;
-          case 3: index = 13; break;
-          case 16: index = 14; break;
-          case 9: index = 15; break;
-          case 10: index = 16; break;
-          case 7: index = 17; break; 
-        }
-        return index;
-      }
-    </script>
-  </body>
-</html>
+                return index;
+            }
+            </script>
+        </body>
+    </html>
