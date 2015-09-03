@@ -227,16 +227,7 @@
                    sum += array_1[i][j] / number_1[i];
                    }
                    }
-                   // for(var i = 0; i < 18; ++i)
-                   //   for(var j = 0; j < 18; ++j) {
-                   //     if(transfer_23[i][j] > 0 && i != j)
-                   //     console.log("{\"source\":\"" + majorss[map_1(i)] + "\",\"target\":\"" + majorss[map_1(j)] + "*\",\"value\":\"" + transfer_23[i][j] + "\"},");
-                   //   }
-                   
-                   // console.log(majorss[3]);
-                   // console.log(majorss[3]);
-                   // console.log(transfer_12[3][3]);
-                   
+  
                    for(var i = 0; i < 18; ++i)
                    for(var j = 0; j < 18; ++j) {
                    sum_1[i*18+j] = array_1[i][j];
@@ -248,7 +239,11 @@
                    sum_3[i*18+j] = array_3[i][j];
                    }
                    
-                   // console.log(four_year_type[]);
+       for(var i = 0; i < 18; ++i)
+         for(var j = 0; j < 18; ++j) {
+           if(transfer_23[i][j] > 0.1 && i != j)
+           console.log("{\"source\":\"" + majorss[map_2(i)] + "\",\"target\":\"" + majorss[map_2(j)] + "*\",\"value\":\"" + transfer_23[i][j] + "\"},");
+         }
                    
                    for(var i = 0; i < 3; ++i) {
                    for(var j = 0; j < 18; ++j) {
@@ -301,19 +296,23 @@
                    var matchLabels = svg.selectAll(".matchLabel")
                    .data(matchs)
                    .enter().append("text")
-                   .text(function (d, i) { return matchs[i]; })
+                   .text(function (d, i) {
+                         return majors[map_1(i)];
+                         })
                    .attr("x", 0)
                    .attr("y", function(d, i) {
-                         var len = 0;
+                         var len = 5;
                          for (var t = 0; t < (Math.floor(i%18)); ++t) {
                          len += scale_1[map_1(t)]*squareWidth;
                          }
                          len += 0.5 * scale_1[map_1(t)]*squareWidth;
+                         if(i == 0) len += 7;
+                         if(i == 13) len -= 3;
                          return (len-10);
                          })
                    .style("text-anchor", "end")
                    .style("font-size","16px")
-                   .attr("transform", "translate(-6," + gridSize / 1.5 + ")")
+                   .attr("transform", "translate(-7," + gridSize / 1.5 + ")")
                    .attr("class", function (d, i) { return ((i >= 0 && i <= 17) ? "matchLabel mono axis axis-workweek" : "matchLabel mono axis"); });
                    for(var t = 0; t < 3; ++t) {
                    var padding = linePadding * t;
@@ -576,74 +575,74 @@
                                         if(d/number_3[Math.floor(i/18)] <= range[t])
                                         return colors[t-1];
                                         }
-                                        return colors[range.length - 1];
+                                        return colors[range.length - 1]; 
                                         });
                                  heatMap.append("title").text(function(d, i) { return d/number_3[Math.floor(i/18)]; });
                                  });
-                                 function major2index_1(major) {
-                                     var num = 0;
-                                     if(major == "Agric. & Nat. Res. Cons") num = 8;
-                                     if(major == "Architecture") num = 17;
-                                     if(major == "Area, Eth. & Multidiscip. Studies") num = 13;
-                                     if(major == "Arts: Visual & Performing") num = 6;
-                                     if(major == "Business") num = 0;
-                                     if(major == "Commun, Fam., & Personal Svcs") num = 2;
-                                     if(major == "Communications") num = 10;
-                                     if(major == "Comp. Sci. & Mathematics") num = 4;
-                                     if(major == "Education") num = 1;
-                                     if(major == "Eng. Tech. & Drafting") num = 12;
-                                     if(major == "Engineering") num = 15;
-                                     if(major == "English & Foreign Lang.") num = 11;
-                                     if(major == "Health Admin. & Assisting") num = 5;
-                                     if(major == "Health Sci. & Techno.") num = 3;
-                                     if(major == "Philosophy, Religion, & Theology") num = 16;
-                                     if(major == "Repair, Production, & Construction") num = 7;
-                                     if(major == "Sciences: Biological & Physical") num = 14;
-                                     if(major == "Social Sciences & Law") num = 9;
-                                     return num;
-                                 }
+           function major2index_1(major) {
+                var num = 0;
+                if(major == "Agric. & Nat. Res. Cons") num = 7;
+                if(major == "Architecture") num = 17;
+                if(major == "Area, Eth. & Multidiscip. Studies") num = 15;
+                if(major == "Arts: Visual & Performing") num = 5;
+                if(major == "Business") num = 0;
+                if(major == "Commun, Fam., & Personal Svcs") num = 4;
+                if(major == "Communications") num = 10;
+                if(major == "Comp. Sci. & Mathematics") num = 6;
+                if(major == "Education") num = 1;
+                if(major == "Eng. Tech. & Drafting") num = 12;
+                if(major == "Engineering") num = 14;
+                if(major == "English & Foreign Lang.") num = 13;
+                if(major == "Health Admin. & Assisting") num = 9;
+                if(major == "Health Sci. & Techno.") num = 2;
+                if(major == "Philosophy, Religion, & Theology") num = 16;
+                if(major == "Repair, Production, & Construction") num = 3;
+                if(major == "Sciences: Biological & Physical") num = 8;
+                if(major == "Social Sciences & Law") num = 11;
+                return num;
+            }
             function major2index_2(major) {
                 var num = 0;
                 if(major == "Agric. & Nat. Res. Cons") num = 8;
-                if(major == "Architecture") num = 17;
-                if(major == "Area, Eth. & Multidiscip. Studies") num = 13;
-                if(major == "Arts: Visual & Performing") num = 6;
+                if(major == "Architecture") num = 16;
+                if(major == "Area, Eth. & Multidiscip. Studies") num = 15;
+                if(major == "Arts: Visual & Performing") num = 5;
                 if(major == "Business") num = 0;
-                if(major == "Commun, Fam., & Personal Svcs") num = 2;
+                if(major == "Commun, Fam., & Personal Svcs") num = 3;
                 if(major == "Communications") num = 10;
-                if(major == "Comp. Sci. & Mathematics") num = 5;
+                if(major == "Comp. Sci. & Mathematics") num = 6;
                 if(major == "Education") num = 1;
-                if(major == "Eng. Tech. & Drafting") num = 14;
-                if(major == "Engineering") num = 15;
-                if(major == "English & Foreign Lang.") num = 11;
-                if(major == "Health Admin. & Assisting") num = 4;
-                if(major == "Health Sci. & Techno.") num = 3;
-                if(major == "Philosophy, Religion, & Theology") num = 16;
-                if(major == "Repair, Production, & Construction") num = 9;
-                if(major == "Sciences: Biological & Physical") num = 12;
-                if(major == "Social Sciences & Law") num = 7;
+                if(major == "Eng. Tech. & Drafting") num = 12;
+                if(major == "Engineering") num = 14;
+                if(major == "English & Foreign Lang.") num = 13;
+                if(major == "Health Admin. & Assisting") num = 7;
+                if(major == "Health Sci. & Techno.") num = 2;
+                if(major == "Philosophy, Religion, & Theology") num = 17;
+                if(major == "Repair, Production, & Construction") num = 4;
+                if(major == "Sciences: Biological & Physical") num = 9;
+                if(major == "Social Sciences & Law") num = 11;
                 return num;
             }
             function major2index_3(major) {
                 var num = 0;
-                if(major == "Agric. & Nat. Res. Cons") num = 8;
-                if(major == "Architecture") num = 17;
-                if(major == "Area, Eth. & Multidiscip. Studies") num = 13;
-                if(major == "Arts: Visual & Performing") num = 6;
+                if(major == "Agric. & Nat. Res. Cons") num = 10;
+                if(major == "Architecture") num = 16;
+                if(major == "Area, Eth. & Multidiscip. Studies") num = 15;
+                if(major == "Arts: Visual & Performing") num = 5;
                 if(major == "Business") num = 0;
-                if(major == "Commun, Fam., & Personal Svcs") num = 2;
+                if(major == "Commun, Fam., & Personal Svcs") num = 4;
                 if(major == "Communications") num = 12;
-                if(major == "Comp. Sci. & Mathematics") num = 5;
-                if(major == "Education") num = 1;
-                if(major == "Eng. Tech. & Drafting") num = 14;
-                if(major == "Engineering") num = 15;
-                if(major == "English & Foreign Lang.") num = 11;
-                if(major == "Health Admin. & Assisting") num = 4;
-                if(major == "Health Sci. & Techno.") num = 3;
-                if(major == "Philosophy, Religion, & Theology") num = 16;
-                if(major == "Repair, Production, & Construction") num = 9;
-                if(major == "Sciences: Biological & Physical") num = 10;
-                if(major == "Social Sciences & Law") num = 7;
+                if(major == "Comp. Sci. & Mathematics") num = 6;
+                if(major == "Education") num = 2;
+                if(major == "Eng. Tech. & Drafting") num = 13;
+                if(major == "Engineering") num = 8;
+                if(major == "English & Foreign Lang.") num = 14;
+                if(major == "Health Admin. & Assisting") num = 7;
+                if(major == "Health Sci. & Techno.") num = 1;
+                if(major == "Philosophy, Religion, & Theology") num = 17;
+                if(major == "Repair, Production, & Construction") num = 3;
+                if(major == "Sciences: Biological & Physical") num = 9;
+                if(major == "Social Sciences & Law") num = 11;
                 return num;
             }
             
@@ -747,17 +746,17 @@
                               .data(graph.nodes)
                               .enter().append("g")
                               .attr("class", "node")
-                              .attr("transform", function(d) {
+                              .attr("transform", function(d) { 
                                     return "translate(" + d.x + "," + d.y + ")"; })
                               .call(d3.behavior.drag()
                                     .origin(function(d) { return d; })
-                                    .on("dragstart", function() {
+                                    .on("dragstart", function() { 
                                         this.parentNode.appendChild(this); })
                                     .on("drag", dragmove));
                               
                               // Node height
                               node.append("rect")
-                              .attr("height", function(d, i) {
+                              .attr("height", function(d, i) { 
                                     if(i < 18) {
                                     if(id == "#chart4") {
                                     return scale_1[map_1(i)]*squareWidth; }
@@ -776,12 +775,12 @@
                               .style("fill", "#fff")
                               .style("stroke", "#000")
                               .append("title")
-                              .text(function(d) {
+                              .text(function(d) { 
                                     return d.name + "\n" + format(d.value); });
                               
                               // the function for moving the nodes
                               function dragmove(d) {
-                              d3.select(this).attr("transform",
+                              d3.select(this).attr("transform", 
                                                    "translate(" + (
                                                                    d.x = Math.max(0, Math.min(width_sankey - d.dx, d3.event.x))
                                                                    ) + "," + (
@@ -850,24 +849,24 @@
                 var index = 0;
                 switch(num)
                 {
-                    case 8: index = 0; break;
+                    case 7: index = 0; break;
                     case 17: index = 1; break;
-                    case 13: index = 2; break;
-                    case 6: index = 3; break;
+                    case 15: index = 2; break;
+                    case 5: index = 3; break;
                     case 0: index = 4; break;
-                    case 2: index = 5; break;
+                    case 4: index = 5; break;
                     case 10: index = 6; break;
-                    case 4: index = 7; break;
+                    case 6: index = 7; break;
                     case 1: index = 8; break;
                     case 12: index = 9; break;
-                    case 15: index = 10; break;
-                    case 11: index = 11; break;
-                    case 5: index = 12; break;
-                    case 3: index = 13; break;
+                    case 14: index = 10; break;
+                    case 13: index = 11; break;
+                    case 9: index = 12; break;
+                    case 2: index = 13; break;
                     case 16: index = 14; break;
-                    case 7: index = 15; break;
-                    case 14: index = 16; break;
-                    case 9: index = 17; break;
+                    case 3: index = 15; break;
+                    case 8: index = 16; break;
+                    case 11: index = 17; break;
                 }
                 return index;
             }
@@ -876,23 +875,23 @@
                 switch(num)
                 {
                     case 8: index = 0; break;
-                    case 17: index = 1; break;
-                    case 13: index = 2; break;
-                    case 6: index = 3; break;
+                    case 16: index = 1; break;
+                    case 15: index = 2; break;
+                    case 5: index = 3; break;
                     case 0: index = 4; break;
-                    case 2: index = 5; break;
+                    case 3: index = 5; break;
                     case 10: index = 6; break;
-                    case 4: index = 12; break;
+                    case 6: index = 12; break;
                     case 1: index = 8; break;
                     case 12: index = 16; break;
-                    case 15: index = 10; break;
-                    case 11: index = 11; break;
-                    case 5: index = 7; break;
-                    case 3: index = 13; break;
-                    case 16: index = 14; break;
-                    case 7: index = 17; break;
-                    case 14: index = 9; break;
-                    case 9: index = 15; break;
+                    case 14: index = 10; break;
+                    case 13: index = 11; break;
+                    case 7: index = 7; break;
+                    case 2: index = 13; break;
+                    case 17: index = 14; break;
+                    case 4: index = 17; break;
+                    case 9: index = 9; break;
+                    case 11: index = 15; break;
                 }
                 return index;
             }
@@ -900,24 +899,24 @@
                 var index = 0;
                 switch(num)
                 {
-                    case 8: index = 0; break;
-                    case 17: index = 1; break;
-                    case 13: index = 2; break;
-                    case 6: index = 3; break;
+                    case 10: index = 0; break;
+                    case 16: index = 1; break;
+                    case 15: index = 2; break;
+                    case 5: index = 3; break;
                     case 0: index = 4; break;
-                    case 2: index = 5; break;
+                    case 4: index = 5; break;
                     case 12: index = 6; break;
-                    case 5: index = 7; break;
-                    case 1: index = 8; break;
-                    case 14: index = 9; break;
-                    case 4: index = 10; break;
-                    case 11: index = 11; break;
-                    case 15: index = 12; break;
-                    case 3: index = 13; break;
-                    case 16: index = 14; break;
-                    case 9: index = 15; break;
-                    case 10: index = 16; break;
-                    case 7: index = 17; break;
+                    case 6: index = 7; break;
+                    case 2: index = 8; break;
+                    case 13: index = 9; break;
+                    case 8: index = 10; break;
+                    case 14: index = 11; break;
+                    case 7: index = 12; break;
+                    case 1: index = 13; break;
+                    case 17: index = 14; break;
+                    case 3: index = 15; break;
+                    case 9: index = 16; break;
+                    case 11: index = 17; break;
                 }
                 return index;
             }
