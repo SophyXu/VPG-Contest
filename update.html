@@ -245,340 +245,350 @@
            console.log("{\"source\":\"" + majorss[map_2(i)] + "\",\"target\":\"" + majorss[map_2(j)] + "*\",\"value\":\"" + transfer_23[i][j] + "\"},");
          }
                    
-                   for(var i = 0; i < 3; ++i) {
-                   for(var j = 0; j < 18; ++j) {
-                   var dataset = new Array();
-                   switch(i) {
-                   case 0 :
-                   dataset[0] = scale_1[map_1(j)] * squareWidth * fit_1[j][0]/number_1[j];
-                   dataset[1] = scale_1[map_1(j)] * squareWidth * fit_1[j][1]/number_1[j];
-                   dataset[2] = scale_1[map_1(j)] * squareWidth * fit_1[j][2]/number_1[j];
-                   barGraph(scale_1[map_1(j)] * squareWidth, 30, dataset, "#barChart" + (i+3), i+3);
-                   dataset = new Array();
-                   dataset[0] = scale_1[map_1(j)] * squareWidth * male_number[i][j]/number_1[j];
-                   dataset[1] = scale_1[map_1(j)] * squareWidth * (1 - male_number[i][j]/number_1[j]);
-                   barGraph(scale_1[map_1(j)] * squareWidth, 30, dataset, "#barChart" + (i+6), i+6);
-                   break;
-                   case 1 :
-                   dataset[0] = scale_2[map_2(j)] * squareWidth * four_year_type[0][j]/number_1[j];
-                   dataset[1] = scale_2[map_2(j)] * squareWidth * (1 - four_year_type[0][j]/number_1[j]);
-                   barGraph(scale_2[map_2(j)] * squareWidth, 40, dataset, "#barChart" + (i), i);
-                   dataset[0] = scale_2[map_2(j)] * squareWidth * fit_2[j][0]/number_2[j];
-                   dataset[1] = scale_2[map_2(j)] * squareWidth * fit_2[j][1]/number_2[j];
-                   dataset[2] = scale_2[map_2(j)] * squareWidth * fit_2[j][2]/number_2[j];
-                   barGraph(scale_2[map_2(j)] * squareWidth, 30, dataset, "#barChart" + (i+3), i+3);
-                   dataset = new Array();
-                   dataset[0] = scale_2[map_2(j)] * squareWidth * male_number[i][j]/number_2[j];
-                   dataset[1] = scale_2[map_2(j)] * squareWidth * (1 - male_number[i][j]/number_2[j]);
-                   barGraph(scale_2[map_2(j)] * squareWidth, 30, dataset, "#barChart" + (i+6), i+6);
-                   break;
-                   case 2 :
-                   dataset[0] = scale_3[map_3(j)] * squareWidth * four_year_type[1][j]/number_2[j];
-                   dataset[1] = scale_3[map_3(j)] * squareWidth * (1 - four_year_type[1][j]/number_2[j]);
-                   barGraph(scale_3[map_3(j)] * squareWidth, 40, dataset, "#barChart" + (i), i);
-                   dataset[0] = scale_3[map_3(j)] * squareWidth * fit_3[j][0]/number_3[j];
-                   dataset[1] = scale_3[map_3(j)] * squareWidth * fit_3[j][1]/number_3[j];
-                   dataset[2] = scale_3[map_3(j)] * squareWidth * fit_3[j][2]/number_3[j];
-                   barGraph(scale_3[map_3(j)] * squareWidth, 30, dataset, "#barChart" + (i+3), i+3);
-                   dataset = new Array();
-                   dataset[0] = scale_3[map_3(j)] * squareWidth * male_number[i][j]/number_3[j];
-                   dataset[1] = scale_3[map_3(j)] * squareWidth * (1 - male_number[i][j]/number_3[j]);
-                   barGraph(scale_3[map_3(j)] * squareWidth, 30, dataset, "#barChart" + (i+6), i+6);
-                   break;
-                   }
-                   }
-                   }
-                   var svg = d3.select("#chart1").append("svg")
-                   .attr("width", width + margin.left + margin.right)
-                   .attr("height", height + margin.top + margin.bottom)
-                   .append("g")
-                   .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-                   var matchLabels = svg.selectAll(".matchLabel")
-                   .data(matchs)
-                   .enter().append("text")
-                   .text(function (d, i) {
-                         return majors[map_1(i)];
-                         })
-                   .attr("x", 0)
-                   .attr("y", function(d, i) {
-                         var len = 5;
-                         for (var t = 0; t < (Math.floor(i%18)); ++t) {
-                         len += scale_1[map_1(t)]*squareWidth;
-                         }
-                         len += 0.5 * scale_1[map_1(t)]*squareWidth;
-                         if(i == 0) len += 7;
-                         if(i == 13) len -= 3;
-                         return (len-10);
-                         })
-                   .style("text-anchor", "end")
-                   .style("font-size","16px")
-                   .attr("transform", "translate(-7," + gridSize / 1.5 + ")")
-                   .attr("class", function (d, i) { return ((i >= 0 && i <= 17) ? "matchLabel mono axis axis-workweek" : "matchLabel mono axis"); });
-                   for(var t = 0; t < 3; ++t) {
-                   var padding = linePadding * t;
-                   var index = t;
-                   var majorLabels = svg.selectAll(".majorLabel")
-                   .data(matchs)
-                   .enter().append("text")
-                   .text(function (d, i) {
-                         return majors[map_1(i)][t];
-                         })
-                   .attr("x", function(d, i) {
-                         var len = rowPadding * index;
-                         for (var t = 0; t < (Math.floor(i%18)); ++t) {
-                         len += scale_1[map_1(t)]*squareWidth;
-                         }
-                         len += 0.5 * scale_1[map_1(t)]*squareWidth;
-                         return (len-10);
-                         })
-                   .attr("y", squareWidth + 25 + padding)
-                   .style("text-anchor", "middle")
-                   .style("font-size","16px")
-                   .attr("transform", "translate(" + gridSize / 1.5 + ", -6)")
-                   .attr("class", function(d, i) { return ((i >= 0 && i <= 17) ? "timeLabel mono axis axis-worktime" : "timeLabel mono axis"); });
-                   }
-                   var heatMap = svg.selectAll(".hit")
-                   .data(sum_1)
-                   .enter().append("rect")
-                   .attr("x", function(d, i) {
-                         var len = 0;
-                         for (var t = 0; t < (i%18); ++t) {
-                         len += scale_1[map_1(t)]*squareWidth;
-                         }
-                         return len;
-                         })
-                   .attr("y", function(d, i) {
-                         var len = 0;
-                         for (var t = 0; t < (Math.floor(i/18)); ++t) {
-                         len += scale_1[map_1(t)]*squareWidth;
-                         }
-                         return len;
-                         })
-                   .attr("rx", 4)
-                   .attr("ry", 4)
-                   .attr("class", "hour bordered")
-                   .attr("width", function(d, i) {return scale_1[map_1(i%18)]*squareWidth; })
-                   .attr("height", function(d, i) {return scale_1[map_1(Math.floor(i/18))]*squareWidth; })
-                   .style("fill", colors[0]);
-                   heatMap.transition().duration(1000)
-                   .style("fill", function(d, i) {
-                          if(d/number_1[Math.floor(i/18)] == 0)
-                          return colors[0];
-                          for (var t = 1; t < range.length; ++t) {
-                          if(d/number_1[Math.floor(i/18)] <= range[t])
-                          return colors[t-1];
-                          }
-                          return colors[range.length - 1];
-                          });
-                   heatMap.append("title").text(function(d, i) { return d/number_1[Math.floor(i/18)]; });
-                   
-                   });
-                   d3.csv("student.csv", function(d) { return {};
-                          },
-                          function(error, data) {
-                          var svg = d3.select("#chart2").append("svg")
-                          .attr("width", width*3 + margin.left + margin.right)
-                          .attr("height", height*2 + margin.top + margin.bottom)
-                          .append("g")
-                          .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-                          var matchLabels = svg.selectAll(".matchLabel")
-                          .data(matchs)
-                          .enter().append("text")
-                          .text(function (d, i) {
-                                return majors[map_2(i)];
-                                })
-                          .attr("x", 0)
-                          .attr("y", function(d, i) {
-                                var len = 5;
-                                for (var t = 0; t < (Math.floor(i%18)); ++t) {
-                                len += scale_2[map_2(t)]*squareWidth;
-                                }
-                                len += 0.5 * scale_2[map_2(t)]*squareWidth;
-                                if(i == 0) len += 7;
-                                if(i == 13) len -= 3;
-                                return (len-10);
-                                })
-                          .style("text-anchor", "end")
-                          .style("font-size","16px")
-                          .attr("transform", "translate(-7," + gridSize / 1.5 + ")")
-                          .attr("class", function (d, i) { return ((i >= 0 && i <= 17) ? "matchLabel mono axis axis-workweek" : "matchLabel mono axis"); });
-                          for(var t = 0; t < 3; ++t) {
-                          var padding = linePadding * t;
-                          var index = t;
-                          var majorLabels = svg.selectAll(".majorLabel")
-                          .data(matchs)
-                          .enter().append("text")
-                          .text(function (d, i) {
-                                return majors[map_2(i)][t];
-                                })
-                          .attr("x", function(d, i) {
-                                var len = rowPadding * index;
-                                for (var t = 0; t < (Math.floor(i%18)); ++t) {
-                                len += scale_2[map_2(t)]*squareWidth;
-                                }
-                                len += 0.5 * scale_2[map_2(t)]*squareWidth;
-                                return (len-10);
-                                })
-                          .attr("y", squareWidth + 25 + padding)
-                          .style("text-anchor", "middle")
-                          .style("font-size","16px")
-                          .attr("transform", "translate(" + gridSize / 1.5 + ", -6)")
-                          .attr("class", function(d, i) { return ((i >= 0 && i <= 17) ? "timeLabel mono axis axis-worktime" : "timeLabel mono axis"); });
-                          }
-                          var heatMap = svg.selectAll(".hit")
-                          .data(sum_2)
-                          .enter().append("rect")
-                          .attr("x", function(d, i) {
-                                var len = 0;
-                                for (var t = 0; t < (i%18); ++t) {
-                                len += scale_2[map_2(t)]*squareWidth;
-                                }
-                                return len;
-                                })
-                          .attr("y", function(d, i) {
-                                var len = 0;
-                                for (var t = 0; t < (Math.floor(i/18)); ++t) {
-                                len += scale_2[map_2(t)]*squareWidth;
-                                }
-                                return len;
-                                })
-                          .attr("rx", 4)
-                          .attr("ry", 4)
-                          .attr("class", "hour bordered")
-                          .attr("width", function(d, i) {return scale_2[map_2(i%18)]*squareWidth; })
-                          .attr("height", function(d, i) {return scale_2[map_2(Math.floor(i/18))]*squareWidth; })
-                          .style("fill", colors[0]);
-                          heatMap.transition().duration(1000)
-                          .style("fill", function(d, i) {
-                                 for (var t = 1; t < range.length; ++t) {
-                                 if(d/number_2[Math.floor(i/18)] <= range[t])
-                                 return colors[t-1];
-                                 }
-                                 return colors[range.length - 1];
-                                 });
-                          heatMap.append("title").text(function(d, i) { return d/number_2[Math.floor(i/18)]; });
-                          
-                          var legend = svg.selectAll(".legend")
-                          .data(range)
-                          .enter().append("g")
-                          .attr("class", "legend");
-                          legend.append("rect")
-                          .attr("x", function(d, i) { return legendElementWidth * i + 300; })
-                          .attr("y", height+40)
-                          .attr("width", legendElementWidth)
-                          .attr("height", gridSize / 2)
-                          .style("fill", function(d, i) { return colors[i]; });
-                          legend.append("text")
-                          .attr("class", "mono")
-                          .text(function(d) { return "≥ " + d; })
-                          .attr("x", function(d, i) { return legendElementWidth * i + 300; })
-                          .attr("y", height+73)
-                          .style("font-size", "16px");
-                          
-                          var abbreviation = svg.selectAll(".tag")
-                          .data(majors)
-                          .enter().append("g");
-                          abbreviation.append("text")
-                          .attr("class", "mono")
-                          .text(function(d) { return d; })
-                          .attr("x", function(d, i) { if(i<10) return 520 * Math.floor(i/5) + 120; else return 520 * 2 + 120; })
-                          .attr("y", function(d, i) { if(i<10) return height + 37 * (i % 5 + 2) + 80; else return height + 37 * ((i-10) % 8 - 1) + 80;})
-                          .style("fill", "black")
-                          .style("font-size", "18px");
-                          
-                          var name = svg.selectAll(".tag")
-                          .data(majorss)
-                          .enter().append("g");
-                          name.append("text")
-                          .attr("class", "mono")
-                          .text(function(d) { return d; })
-                          .attr("x", function(d, i) { if(i<10) return 520 * Math.floor(i/5)+ 170; else return 520 * 2 + 170; })
-                          .attr("y", function(d, i) { if(i<10) return height + 37 * (i % 5 + 2) + 80; else return height + 37 * ((i-10) % 8 - 1) + 80;})
-                          .style("font-size", "18px");
-                          });
-                          d3.csv("student.csv", function(d) { return {};
-                                 },
-                                 function(error, data) {
-                                 var svg = d3.select("#chart3").append("svg")
-                                 .attr("width", width + margin.left + margin.right)
-                                 .attr("height", height + margin.top + margin.bottom)
-                                 .append("g")
-                                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-                                 var matchLabels = svg.selectAll(".matchLabel")
-                                 .data(matchs)
-                                 .enter().append("text")
-                                 .text(function (d, i) {
-                                       return majors[map_3(i)];
-                                       })
-                                 .attr("x", 0)
-                                 .attr("y", function(d, i) {
-                                       var len = 0;
-                                       for (var t = 0; t < (Math.floor(i%18)); ++t) {
-                                       len += scale_3[map_3(t)]*squareWidth;
-                                       }
-                                       len += 0.5 * scale_3[map_3(t)]*squareWidth;
-                                       return (len-10);
-                                       })
-                                 .style("text-anchor", "end")
-                                 .style("font-size","16px")
-                                 .attr("transform", "translate(-6," + gridSize / 1.5 + ")")
-                                 .attr("class", function (d, i) { return ((i >= 0 && i <= 17) ? "matchLabel mono axis axis-workweek" : "matchLabel mono axis"); });
-                                 for(var t = 0; t < 3; ++t) {
-                                 var padding = linePadding * t;
-                                 var index = t;
-                                 var majorLabels = svg.selectAll(".majorLabel")
-                                 .data(matchs)
-                                 .enter().append("text")
-                                 .text(function (d, i) {
-                                       return majors[map_3(i)][t];
-                                       })
-                                 .attr("x", function(d, i) {
-                                       var len = rowPadding * index;
-                                       for (var t = 0; t < (Math.floor(i%18)); ++t) {
-                                       len += scale_3[map_3(t)]*squareWidth;
-                                       }
-                                       len += 0.5 * scale_3[map_3(t)]*squareWidth;
-                                       return (len-10);
-                                       })
-                                 .attr("y", squareWidth + 25 + padding)
-                                 .style("text-anchor", "middle")
-                                 .style("font-size","16px")
-                                 .attr("transform", "translate(" + gridSize / 1.5 + ", -6)")
-                                 .attr("class", function(d, i) { return ((i >= 0 && i <= 17) ? "timeLabel mono axis axis-worktime" : "timeLabel mono axis"); });
-                                 }
-                                 var heatMap = svg.selectAll(".hit")
-                                 .data(sum_3)
-                                 .enter().append("rect")
-                                 .attr("x", function(d, i) {
-                                       var len = 0;
-                                       for (var t = 0; t < (i%18); ++t) {
-                                       len += scale_3[map_3(t)]*squareWidth;
-                                       }
-                                       return len;
-                                       })
-                                 .attr("y", function(d, i) {
-                                       var len = 0;
-                                       for (var t = 0; t < (Math.floor(i/18)); ++t) {
-                                       len += scale_3[map_3(t)]*squareWidth;
-                                       }
-                                       return len;
-                                       })
-                                 .attr("rx", 4)
-                                 .attr("ry", 4)
-                                 .attr("class", "hour bordered")
-                                 .attr("width", function(d, i) {return scale_3[map_3(i%18)]*squareWidth; })
-                                 .attr("height", function(d, i) {return scale_3[map_3(Math.floor(i/18))]*squareWidth; })
-                                 .style("fill", colors[0]);
-                                 heatMap.transition().duration(1000)
-                                 .style("fill", function(d, i) {
-                                        for (var t = 1; t < range.length; ++t) {
-                                        if(d/number_3[Math.floor(i/18)] <= range[t])
-                                        return colors[t-1];
-                                        }
-                                        return colors[range.length - 1]; 
-                                        });
-                                 heatMap.append("title").text(function(d, i) { return d/number_3[Math.floor(i/18)]; });
-                                 });
+for(var i = 0; i < 3; ++i) {
+for(var j = 0; j < 18; ++j) {
+var dataset = new Array();
+switch(i) {
+case 0 :
+dataset[0] = scale_1[map_1(j)] * squareWidth * fit_1[j][0]/number_1[j];
+dataset[1] = scale_1[map_1(j)] * squareWidth * fit_1[j][1]/number_1[j];
+dataset[2] = scale_1[map_1(j)] * squareWidth * fit_1[j][2]/number_1[j];
+barGraph(scale_1[map_1(j)] * squareWidth, 30, dataset, "#barChart" + (i+3), i+3);
+dataset = new Array();
+dataset[0] = scale_1[map_1(j)] * squareWidth * male_number[i][j]/number_1[j];
+dataset[1] = scale_1[map_1(j)] * squareWidth * (1 - male_number[i][j]/number_1[j]);
+barGraph(scale_1[map_1(j)] * squareWidth, 30, dataset, "#barChart" + (i+6), i+6);
+break;
+case 1 :
+dataset[0] = scale_2[map_2(j)] * squareWidth * four_year_type[0][j]/number_1[j];
+dataset[1] = scale_2[map_2(j)] * squareWidth * (1 - four_year_type[0][j]/number_1[j]);
+barGraph(scale_2[map_2(j)] * squareWidth, 40, dataset, "#barChart" + (i), i);
+dataset[0] = scale_2[map_2(j)] * squareWidth * fit_2[j][0]/number_2[j];
+dataset[1] = scale_2[map_2(j)] * squareWidth * fit_2[j][1]/number_2[j];
+dataset[2] = scale_2[map_2(j)] * squareWidth * fit_2[j][2]/number_2[j];
+barGraph(scale_2[map_2(j)] * squareWidth, 30, dataset, "#barChart" + (i+3), i+3);
+dataset = new Array();
+dataset[0] = scale_2[map_2(j)] * squareWidth * male_number[i][j]/number_2[j];
+dataset[1] = scale_2[map_2(j)] * squareWidth * (1 - male_number[i][j]/number_2[j]);
+barGraph(scale_2[map_2(j)] * squareWidth, 30, dataset, "#barChart" + (i+6), i+6);
+break;
+case 2 :
+dataset[0] = scale_3[map_3(j)] * squareWidth * four_year_type[1][j]/number_2[j];
+dataset[1] = scale_3[map_3(j)] * squareWidth * (1 - four_year_type[1][j]/number_2[j]);
+barGraph(scale_3[map_3(j)] * squareWidth, 40, dataset, "#barChart" + (i), i);
+dataset[0] = scale_3[map_3(j)] * squareWidth * fit_3[j][0]/number_3[j];
+dataset[1] = scale_3[map_3(j)] * squareWidth * fit_3[j][1]/number_3[j];
+dataset[2] = scale_3[map_3(j)] * squareWidth * fit_3[j][2]/number_3[j];
+barGraph(scale_3[map_3(j)] * squareWidth, 30, dataset, "#barChart" + (i+3), i+3);
+dataset = new Array();
+dataset[0] = scale_3[map_3(j)] * squareWidth * male_number[i][j]/number_3[j];
+dataset[1] = scale_3[map_3(j)] * squareWidth * (1 - male_number[i][j]/number_3[j]);
+barGraph(scale_3[map_3(j)] * squareWidth, 30, dataset, "#barChart" + (i+6), i+6);
+break;
+}
+}
+}
+var svg = d3.select("#chart1").append("svg")
+.attr("width", width + margin.left + margin.right)
+.attr("height", height + margin.top + margin.bottom)
+.append("g")
+.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+var matchLabels = svg.selectAll(".matchLabel")
+.data(matchs)
+.enter().append("text")
+.text(function (d, i) {
+return majors[map_1(i)];
+})
+.attr("x", 0)
+.attr("y", function(d, i) {
+var len = 5;
+for (var t = 0; t < (Math.floor(i%18)); ++t) {
+len += scale_1[map_1(t)]*squareWidth;
+}
+len += 0.5 * scale_1[map_1(t)]*squareWidth;
+if(i == 0) len += 7;
+if(i == 13) len -= 3;
+return (len-10);
+})
+.style("text-anchor", "end")
+.style("font-size","16px")
+.attr("transform", "translate(-7," + gridSize / 1.5 + ")")
+.attr("class", function (d, i) { return ((i >= 0 && i <= 17) ? "matchLabel mono axis axis-workweek" : "matchLabel mono axis"); });
+for(var t = 0; t < 3; ++t) {
+var padding = linePadding * t;
+var index = t;
+var majorLabels = svg.selectAll(".majorLabel")
+.data(matchs)
+.enter().append("text")
+.text(function (d, i) {
+return majors[map_1(i)][t];
+})
+.attr("x", function(d, i) {
+var len = rowPadding * index;
+for (var t = 0; t < (Math.floor(i%18)); ++t) {
+len += scale_1[map_1(t)]*squareWidth;
+}
+len += 0.5 * scale_1[map_1(t)]*squareWidth;
+return (len-10);
+})
+.attr("y", squareWidth + 25 + padding)
+.style("text-anchor", "middle")
+.style("font-size","16px")
+.attr("transform", "translate(" + gridSize / 1.5 + ", -6)")
+.attr("class", function(d, i) { return ((i >= 0 && i <= 17) ? "timeLabel mono axis axis-worktime" : "timeLabel mono axis"); });
+}
+var heatMap = svg.selectAll(".hit")
+.data(sum_1)
+.enter().append("rect")
+.attr("x", function(d, i) {
+var len = 0;
+for (var t = 0; t < (i%18); ++t) {
+len += scale_1[map_1(t)]*squareWidth;
+}
+return len;
+})
+.attr("y", function(d, i) {
+var len = 0;
+for (var t = 0; t < (Math.floor(i/18)); ++t) {
+len += scale_1[map_1(t)]*squareWidth;
+}
+return len;
+})
+.attr("rx", 4)
+.attr("ry", 4)
+.attr("class", "hour bordered")
+.attr("width", function(d, i) {return scale_1[map_1(i%18)]*squareWidth; })
+.attr("height", function(d, i) {return scale_1[map_1(Math.floor(i/18))]*squareWidth; })
+.style("fill", colors[0]);
+heatMap.transition().duration(1000)
+.style("fill", function(d, i) {
+if(d/number_1[Math.floor(i/18)] == 0)
+return colors[0];
+for (var t = 1; t < range.length; ++t) {
+if(d/number_1[Math.floor(i/18)] <= range[t])
+return colors[t-1];
+}
+return colors[range.length - 1];
+});
+heatMap.append("title").text(function(d, i) { return d/number_1[Math.floor(i/18)]; });
+
+});
+
+
+
+
+
+d3.csv("student.csv", function(d) { return {};
+},
+function(error, data) {
+var svg = d3.select("#chart2").append("svg")
+.attr("width", width*3 + margin.left + margin.right)
+.attr("height", height*2 + margin.top + margin.bottom)
+.append("g")
+.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+var matchLabels = svg.selectAll(".matchLabel")
+.data(matchs)
+.enter().append("text")
+.text(function (d, i) {
+return majors[map_2(i)];
+})
+.attr("x", 0)
+.attr("y", function(d, i) {
+var len = 5;
+for (var t = 0; t < (Math.floor(i%18)); ++t) {
+len += scale_2[map_2(t)]*squareWidth;
+}
+len += 0.5 * scale_2[map_2(t)]*squareWidth;
+if(i == 0) len += 7;
+if(i == 13) len -= 3;
+return (len-10);
+})
+.style("text-anchor", "end")
+.style("font-size","16px")
+.attr("transform", "translate(-7," + gridSize / 1.5 + ")")
+.attr("class", function (d, i) { return ((i >= 0 && i <= 17) ? "matchLabel mono axis axis-workweek" : "matchLabel mono axis"); });
+for(var t = 0; t < 3; ++t) {
+var padding = linePadding * t;
+var index = t;
+var majorLabels = svg.selectAll(".majorLabel")
+.data(matchs)
+.enter().append("text")
+.text(function (d, i) {
+return majors[map_2(i)][t];
+})
+.attr("x", function(d, i) {
+var len = rowPadding * index;
+for (var t = 0; t < (Math.floor(i%18)); ++t) {
+len += scale_2[map_2(t)]*squareWidth;
+}
+len += 0.5 * scale_2[map_2(t)]*squareWidth;
+return (len-10);
+})
+.attr("y", squareWidth + 25 + padding)
+.style("text-anchor", "middle")
+.style("font-size","16px")
+.attr("transform", "translate(" + gridSize / 1.5 + ", -6)")
+.attr("class", function(d, i) { return ((i >= 0 && i <= 17) ? "timeLabel mono axis axis-worktime" : "timeLabel mono axis"); });
+}
+var heatMap = svg.selectAll(".hit")
+.data(sum_2)
+.enter().append("rect")
+.attr("x", function(d, i) {
+var len = 0;
+for (var t = 0; t < (i%18); ++t) {
+len += scale_2[map_2(t)]*squareWidth;
+}
+return len;
+})
+.attr("y", function(d, i) {
+var len = 0;
+for (var t = 0; t < (Math.floor(i/18)); ++t) {
+len += scale_2[map_2(t)]*squareWidth;
+}
+return len;
+})
+.attr("rx", 4)
+.attr("ry", 4)
+.attr("class", "hour bordered")
+.attr("width", function(d, i) {return scale_2[map_2(i%18)]*squareWidth; })
+.attr("height", function(d, i) {return scale_2[map_2(Math.floor(i/18))]*squareWidth; })
+.style("fill", colors[0]);
+heatMap.transition().duration(1000)
+.style("fill", function(d, i) {
+ for (var t = 1; t < range.length; ++t) {
+ if(d/number_2[Math.floor(i/18)] <= range[t])
+ return colors[t-1];
+ }
+ return colors[range.length - 1];
+ });
+heatMap.append("title").text(function(d, i) { return d/number_2[Math.floor(i/18)]; });
+
+var legend = svg.selectAll(".legend")
+.data(range)
+.enter().append("g")
+.attr("class", "legend");
+legend.append("rect")
+.attr("x", function(d, i) { return legendElementWidth * i + 300; })
+.attr("y", height+40)
+.attr("width", legendElementWidth)
+.attr("height", gridSize / 2)
+.style("fill", function(d, i) { return colors[i]; });
+legend.append("text")
+.attr("class", "mono")
+.text(function(d) { return "≥ " + d; })
+.attr("x", function(d, i) { return legendElementWidth * i + 300; })
+.attr("y", height+73)
+.style("font-size", "16px");
+
+var abbreviation = svg.selectAll(".tag")
+.data(majors)
+.enter().append("g");
+abbreviation.append("text")
+.attr("class", "mono")
+.text(function(d) { return d; })
+.attr("x", function(d, i) { if(i<10) return 520 * Math.floor(i/5) + 120; else return 520 * 2 + 120; })
+.attr("y", function(d, i) { if(i<10) return height + 37 * (i % 5 + 2) + 80; else return height + 37 * ((i-10) % 8 - 1) + 80;})
+.style("fill", "black")
+.style("font-size", "18px");
+
+var name = svg.selectAll(".tag")
+.data(majorss)
+.enter().append("g");
+name.append("text")
+.attr("class", "mono")
+.text(function(d) { return d; })
+.attr("x", function(d, i) { if(i<10) return 520 * Math.floor(i/5)+ 170; else return 520 * 2 + 170; })
+.attr("y", function(d, i) { if(i<10) return height + 37 * (i % 5 + 2) + 80; else return height + 37 * ((i-10) % 8 - 1) + 80;})
+.style("font-size", "18px");
+});
+
+
+
+
+
+d3.csv("student.csv", function(d) { return {};
+ },
+ function(error, data) {
+ var svg = d3.select("#chart3").append("svg")
+ .attr("width", width + margin.left + margin.right)
+ .attr("height", height + margin.top + margin.bottom)
+ .append("g")
+ .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+ var matchLabels = svg.selectAll(".matchLabel")
+ .data(matchs)
+ .enter().append("text")
+ .text(function (d, i) {
+       return majors[map_3(i)];
+       })
+ .attr("x", 0)
+ .attr("y", function(d, i) {
+       var len = 0;
+       for (var t = 0; t < (Math.floor(i%18)); ++t) {
+       len += scale_3[map_3(t)]*squareWidth;
+       }
+       len += 0.5 * scale_3[map_3(t)]*squareWidth;
+       return (len-10);
+       })
+ .style("text-anchor", "end")
+ .style("font-size","16px")
+ .attr("transform", "translate(-6," + gridSize / 1.5 + ")")
+ .attr("class", function (d, i) { return ((i >= 0 && i <= 17) ? "matchLabel mono axis axis-workweek" : "matchLabel mono axis"); });
+ for(var t = 0; t < 3; ++t) {
+ var padding = linePadding * t;
+ var index = t;
+ var majorLabels = svg.selectAll(".majorLabel")
+ .data(matchs)
+ .enter().append("text")
+ .text(function (d, i) {
+       return majors[map_3(i)][t];
+       })
+ .attr("x", function(d, i) {
+       var len = rowPadding * index;
+       for (var t = 0; t < (Math.floor(i%18)); ++t) {
+       len += scale_3[map_3(t)]*squareWidth;
+       }
+       len += 0.5 * scale_3[map_3(t)]*squareWidth;
+       return (len-10);
+       })
+ .attr("y", squareWidth + 25 + padding)
+ .style("text-anchor", "middle")
+ .style("font-size","16px")
+ .attr("transform", "translate(" + gridSize / 1.5 + ", -6)")
+ .attr("class", function(d, i) { return ((i >= 0 && i <= 17) ? "timeLabel mono axis axis-worktime" : "timeLabel mono axis"); });
+ }
+ var heatMap = svg.selectAll(".hit")
+ .data(sum_3)
+ .enter().append("rect")
+ .attr("x", function(d, i) {
+       var len = 0;
+       for (var t = 0; t < (i%18); ++t) {
+       len += scale_3[map_3(t)]*squareWidth;
+       }
+       return len;
+       })
+ .attr("y", function(d, i) {
+       var len = 0;
+       for (var t = 0; t < (Math.floor(i/18)); ++t) {
+       len += scale_3[map_3(t)]*squareWidth;
+       }
+       return len;
+       })
+ .attr("rx", 4)
+ .attr("ry", 4)
+ .attr("class", "hour bordered")
+ .attr("width", function(d, i) {return scale_3[map_3(i%18)]*squareWidth; })
+ .attr("height", function(d, i) {return scale_3[map_3(Math.floor(i/18))]*squareWidth; })
+ .style("fill", colors[0]);
+ heatMap.transition().duration(1000)
+ .style("fill", function(d, i) {
+        for (var t = 1; t < range.length; ++t) {
+        if(d/number_3[Math.floor(i/18)] <= range[t])
+        return colors[t-1];
+        }
+        return colors[range.length - 1]; 
+        });
+ heatMap.append("title").text(function(d, i) { return d/number_3[Math.floor(i/18)]; });
+ });
            function major2index_1(major) {
                 var num = 0;
                 if(major == "Agric. & Nat. Res. Cons") num = 7;
@@ -881,17 +891,17 @@
                     case 0: index = 4; break;
                     case 3: index = 5; break;
                     case 10: index = 6; break;
-                    case 6: index = 12; break;
+                    case 6: index = 7; break;
                     case 1: index = 8; break;
-                    case 12: index = 16; break;
+                    case 12: index = 9; break;
                     case 14: index = 10; break;
                     case 13: index = 11; break;
-                    case 7: index = 7; break;
+                    case 7: index = 12; break;
                     case 2: index = 13; break;
                     case 17: index = 14; break;
-                    case 4: index = 17; break;
-                    case 9: index = 9; break;
-                    case 11: index = 15; break;
+                    case 4: index = 15; break;
+                    case 9: index = 16; break;
+                    case 11: index = 17; break;
                 }
                 return index;
             }
