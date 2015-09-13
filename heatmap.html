@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+<head>
+  <style>
+  rect.bordered {
+    stroke: #E6E6E6;
+    stroke-width:2px;
+  }
+  text.mono {
+    font-size: 9pt;
+    font-family: Consolas, courier;
+    font-weight: bold;
+    fill: #aaa;
+  }
+  text.axis-workweek {
+    fill: #000;
+  }
+  text.axis-worktime {
+    fill: #000;
+  }
+  div.matrix{
+    border: 0px solid #000;
+    width: 720px;
+    height: 760px;
+    float: left;
+    margin-top: 50px;
+  }
+  </style>
+  <script src="http://d3js.org/d3.v3.js"></script>
+  <script src="sankey.js"></script>
+</head>
+<body>
+  <div>
+    <div class="matrix" id="chart1"></div>
+  </div> 
+  <script type="text/javascript">
+  var margin = { top: 0, right: 0, bottom: 100, left: 50 },
+  width = 750 - margin.left - margin.right,
+  height = 900 - margin.top - margin.bottom;
+
+  /* Public variable */
+
+  // Row/column value * scaleNumber = cell width/height
+  var scaleNumber = 40;
+
+  // Input file name for row
+  var ROW_VALUE_FILE = "row_value.csv";
+
+  // Input file name for column
+  var COL_VALUE_FILE = "col_value.csv";
+
+  // Input file name for each cell
+  var CELL_VALUE_FILE = "color.csv";
+
+  // Length between matrix and legend
+  var LEGENG_MARING_TOP = 40;
+
+  // Color and range value
+  var colors = ["#ffffd9","#c7e9b4","#7fcdbb","#41b6c4","#1d91c0","#225ea8","#081d58"];
+  var range = [0, 0.05, 0.1, 0.15, 0.25, 0.35, 0.4];
+
+
+  /* Private variable */
+  var matrixWidth = 0;
+  var matrixHeight = 0;
+
+  var rowValue = new Array();
+  var rowName = new Array();
+  var rowNumber = 0;
+
+  var colValue = new Array();
+  var colName = new Array();
+  var colNumber = 0;
+
+  var cellValue = new Array();
+  var cellNumber = 0;
+
+  // Read in cell value
+  d3.csv(CELL_VALUE_FILE, function(d) {
+    cellValue[cellNumber] = d.Value;
+    cellNumber++;
+    return {};
+  },
+  function(error, data) {
+    console.log(cellValue);
+  });
+
+  // Read in row value
+  d3.csv(ROW_VALUE_FILE, function(d) {
+    rowName[colNumber] = d.Name;
+    rowValue[colNumber] = d.Value/1;
+    colNumber++;
+    return {
+    };
+  },
+  function(error, data) {
+    // Read in column value
+    d3.csv(COL_VALUE_FILE, function(d) {
+      colName[rowNumber] = d.Name;
+      colValue[rowNumber] = d.Value/1;
+      rowNumber++;
+      return {
+      };
+    },
+    function(error, data) {
+      // Calculate matrix height and width
+      for (var i = 0; i < rowNumber; ++i)
+        matrixHeight += colValue[i] * scaleNumber;
+
+      for (var i = 0; i < colNumber; ++i)
+        matrixWidth += rowValue[i] * scaleNumber;
+
+      var svg = d3.select("#chart1").append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+      // Append column labels
+      var colLabels = svg.selectAll(".colLabel")
+      .data(colName)
+      .enter().append("text")
+      .text(function(d) {return d;})
+      .attr("x", 0)
+      .attr("y", function(d, i) {
+       var len = 5;
+       for (var t = 0; t < i; ++t) {
+        len += colValue[t] * scaleNumber;
+      }
+      len += 0.5 * colValue[t] * scaleNumber;
+      return len;
+      })
+      .style("text-anchor", "end")
+      .style("font-size","16px")
+      .attr("transform", "translate(-7,0)")
+      .attr("class", function(d, i) { return "timeLabel mono axis axis-worktime";});
+
+      // Append row labels
+      var rowLabels = svg.selectAll(".rowLabel")
+      .data(rowName)
+      .enter().append("text")
+      .text(function(d) {return d;})
+      .attr("x", function(d, i) {
+       var len = 5;
+       for (var t = 0; t < i; ++t) {
+         len += rowValue[t] * scaleNumber;
+       }
+       len += 0.5 * rowValue[t] * scaleNumber;
+       return len;
+      })
+      .attr("y", function(d,i) {
+        return matrixHeight;
+      })
+      .style("text-anchor", "end")
+      .style("font-size","16px")
+      .attr("transform", "translate(0,17)")
+      .attr("class", function(d, i) { return "timeLabel mono axis axis-worktime";});
+
+      // Draw the matrix
+      var heatMap = svg.selectAll(".hit")
+      .data(cellValue)
+      .enter().append("rect")
+      .attr("x", function(d, i) {
+       var len = 0;
+       for (var t = 0; t < (i%colNumber); ++t) {
+        len += rowValue[t] * scaleNumber;
+      }
+      return len;
+      })
+      .attr("y", function(d, i) {
+       var len = 0;
+       for (var t = 0; t < (Math.floor(i/colNumber)); ++t) {
+        len += colValue[t] * scaleNumber;
+      }
+      return len;
+      })
+      .attr("rx", 4)
+      .attr("ry", 4)
+      .attr("class", "hour bordered")
+      .attr("width", function(d, i) {return rowValue[i%colNumber] * scaleNumber; })
+      .attr("height", function(d, i) {return colValue[Math.floor(i/colNumber)] * scaleNumber; })
+      .style("fill", colors[0]);
+
+      heatMap.transition().duration(1000)
+      .style("fill", function(d, i) {
+        if(d == 0)
+          return colors[0];
+        for (var t = 1; t < range.length; ++t) {
+          if(d <= range[t])
+            return colors[t-1];
+        }
+        return colors[range.length - 1];
+      });
+      heatMap.append("title").text(function(d, i) {return d;});
+
+      // Append legend
+      var legend = svg.selectAll(".legend")
+      .data(range)
+      .enter().append("g")
+      .attr("class", "legend");
+      legend.append("rect")
+      .attr("x", function(d, i) { return matrixWidth/range.length * i; })
+      .attr("y", matrixHeight + LEGENG_MARING_TOP)
+      .attr("width", matrixWidth/range.length)
+      .attr("height", 10)
+      .style("fill", function(d, i) { return colors[i]; });
+      legend.append("text")
+      .attr("class", "mono")
+      .text(function(d) { return "≥ " + d; })
+      .attr("x", function(d, i) { return  matrixWidth/range.length * i; })
+      .attr("y", matrixHeight + LEGENG_MARING_TOP + 30)
+      .style("font-size", "16px");
+
+    });
+});
+</script>
+</body>
+</html>
